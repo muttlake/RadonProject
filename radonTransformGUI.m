@@ -22,7 +22,7 @@ function varargout = radonTransformGUI(varargin)
 
 % Edit the above text to modify the response to help radonTransformGUI
 
-% Last Modified by GUIDE v2.5 05-Oct-2017 21:29:21
+% Last Modified by GUIDE v2.5 06-Oct-2017 00:57:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,16 +80,19 @@ function buttonRadonTransform_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 inputImage = handles.inputImage;
 if size(inputImage) > 0
-    theta = 0:180;
+    theta = 0:1:179;
     [R,xp] = radon(inputImage,theta);
     axes(handles.axesRadonTransformImage);
-    imshow(R);
-    title('Radon Transform {\theta} (X\prime)');
+    hold off;
+    disp("Size of radon image:")
+    disp(size(R))
+    imshow(R,[],'Xdata',theta,'Ydata',xp,'InitialMagnification','fit');
+    % colorbar;
+    colorbar('Ticks',[0,0.5*10^4,1*10^4,1.5*10^4,2*10^4,2.5*10^4],...
+         'TickLabels',{'0','5000','10000','15000','20000', '25000'});
+    % imshow(R,[],'Xdata',theta,'Ydata',xp);
     xlabel('\theta (degrees)');
-    ylabel('X\prime');
-    set(gca,'XTick',0:20:180);
-    colormap(gray);
-    colorbar;
+    ylabel('x''');
 else
 end
 
@@ -99,10 +102,64 @@ function buttonInputImage_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)'
 inputImage = [];
-inputImage = imread('Lenna.png');
-inputImage = rgb2gray(inputImage);
-inputImage = imresize(inputImage, [256, 256]);
+inputImage = imread('testImage2.png');
+% inputImage = rgb2gray(inputImage);
 axes(handles.axesInputImage);
+hold off;
+disp("Size of input image:")
+disp(size(inputImage))
 imshow(inputImage)
+colorbar('Ticks',[0,64,128,192,256],...
+         'TickLabels',{'0','64','128','192','256'});
 handles.inputImage = inputImage;
 guidata(hObject,handles);
+
+
+% --- Executes on button press in buttonRadonTransformMovie.
+function buttonRadonTransformMovie_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonRadonTransformMovie (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+inputImage = handles.inputImage;
+[inputRows, inputCols] = size(inputImage);
+radonMovieFrame = zeros(180, inputRows);
+% radonTransformMovie = VideoWriter('radonTransformMovie.mp4', 'MPEG-4');
+% inputImageMovie = VideoWriter('inputImageMovie.mp4', 'MPEG-4');
+% open(radonTransformMovie);
+% open(inputImageMovie);
+radonMovie = {};
+inputImageMovie = {};
+cmap = gray(256);
+for angle = 0:1:179
+    rotatedImage = imrotate(inputImage, angle);
+    inputImageMovie = [inputImageMovie, im2frame(rotatedImage, cmap)];
+    % writeVideo(inputImageMovie, rotatedImage);
+    % sumLine = sum(rotatedImage);
+%     sumLine = ones(180) .* 125;
+%     % radonMovieFrame[angle + 1,:] = sumLine;
+%     for x = 1:inputRows
+%         radonMovieFrame(angle+1,x) = sumLine(x);
+%     end
+%     radonMovie = [radonMovie, im2frame(radonMovieFrame, cmap)];
+    % writeVideo(radonTransformMovie, radonMovieFrame);
+end
+% close(inputImageMovie);
+% close(radonTransformMovie);
+% videoReaderInputImageMovie = VideoReader('inputImageMovie.mp4');
+% videoReaderRadonTransformMovie = VideoReader('radonTransformMovie.mp4');
+
+axes(handles.axesInputImage);
+hold off;
+imshow(inputImageMovie, 'Border', 'tight');
+
+% axes(handles.axesRadonTransformImage);
+% hold off;
+% imshow(radonMovie.cdata, 'Border', 'tight');
+% I should use getframe instead
+        
+    
+    
+    
+    
+
+
