@@ -22,7 +22,7 @@ function varargout = radonTransformGUI(varargin)
 
 % Edit the above text to modify the response to help radonTransformGUI
 
-% Last Modified by GUIDE v2.5 06-Oct-2017 00:57:23
+% Last Modified by GUIDE v2.5 06-Oct-2017 19:55:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -42,6 +42,44 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
+
+
+function fieldEnterAngleIncrement_Callback(hObject, eventdata, handles)
+% hObject    handle to fieldEnterAngleIncrement (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of fieldEnterAngleIncrement as text
+%        str2double(get(hObject,'String')) returns contents of fieldEnterAngleIncrement as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function fieldEnterAngleIncrement_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to fieldEnterAngleIncrement (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in buttonAngleIncrement.
+function buttonAngleIncrement_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonAngleIncrement (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+angleIncrement = 1;
+angleIncrement = str2num(get(handles.fieldEnterAngleIncrement,'String'));
+if angleIncrement < 1 || angleIncrement > 179
+    angleIncrement = 1;
+    disp("Changing to default angleIncrement = 1");
+end
+handles.angleIncrement = angleIncrement;
+guidata(hObject,handles);
+% --- buttonAngleIncrement
 
 
 % --- Executes just before radonTransformGUI is made visible.
@@ -72,30 +110,6 @@ function varargout = radonTransformGUI_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-
-% --- Executes on button press in buttonRadonTransform.
-function buttonRadonTransform_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonRadonTransform (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-inputImage = handles.inputImage;
-if size(inputImage) > 0
-    theta = 0:1:179;
-    [R,xp] = radon(inputImage,theta);
-    axes(handles.axesRadonTransformImage);
-    hold off;
-    disp("Size of radon image:")
-    disp(size(R))
-    imshow(R,[],'Xdata',theta,'Ydata',xp,'InitialMagnification','fit');
-    % colorbar;
-    colorbar('Ticks',[0,0.5*10^4,1*10^4,1.5*10^4,2*10^4,2.5*10^4],...
-         'TickLabels',{'0','5000','10000','15000','20000', '25000'});
-    % imshow(R,[],'Xdata',theta,'Ydata',xp);
-    xlabel('\theta (degrees)');
-    ylabel('x''');
-else
-end
-
 % --- Executes on button press in buttonInputImage.
 function buttonInputImage_Callback(hObject, eventdata, handles)
 % hObject    handle to buttonInputImage (see GCBO)
@@ -106,60 +120,86 @@ inputImage = imread('testImage2.png');
 % inputImage = rgb2gray(inputImage);
 axes(handles.axesInputImage);
 hold off;
-disp("Size of input image:")
-disp(size(inputImage))
+% disp("Size of input image:")
+% disp(size(inputImage))
 imshow(inputImage)
 colorbar('Ticks',[0,64,128,192,256],...
          'TickLabels',{'0','64','128','192','256'});
 handles.inputImage = inputImage;
 guidata(hObject,handles);
 
+% --- End buttonInputImage
 
-% --- Executes on button press in buttonRadonTransformMovie.
-function buttonRadonTransformMovie_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonRadonTransformMovie (see GCBO)
+
+% --- Executes on button press in buttonMatlabRadonTransform.
+function buttonMatlabRadonTransform_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonMatlabRadonTransform (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 inputImage = handles.inputImage;
-[inputRows, inputCols] = size(inputImage);
-radonMovieFrame = zeros(180, inputRows);
-% radonTransformMovie = VideoWriter('radonTransformMovie.mp4', 'MPEG-4');
-% inputImageMovie = VideoWriter('inputImageMovie.mp4', 'MPEG-4');
-% open(radonTransformMovie);
-% open(inputImageMovie);
-radonMovie = {};
-inputImageMovie = {};
-cmap = gray(256);
-for angle = 0:1:179
-    rotatedImage = imrotate(inputImage, angle);
-    inputImageMovie = [inputImageMovie, im2frame(rotatedImage, cmap)];
-    % writeVideo(inputImageMovie, rotatedImage);
-    % sumLine = sum(rotatedImage);
-%     sumLine = ones(180) .* 125;
-%     % radonMovieFrame[angle + 1,:] = sumLine;
-%     for x = 1:inputRows
-%         radonMovieFrame(angle+1,x) = sumLine(x);
-%     end
-%     radonMovie = [radonMovie, im2frame(radonMovieFrame, cmap)];
-    % writeVideo(radonTransformMovie, radonMovieFrame);
+angleIncrement = handles.angleIncrement;
+if size(inputImage) > 0
+    theta = 0:angleIncrement:179;
+    [R,xp] = radon(inputImage,theta);
+    axes(handles.axesMatlabRadonTransform);
+    hold off;
+    % disp("Size of radon image:")
+    % disp(size(R))
+    imshow(R,[],'Xdata',theta,'Ydata',xp,'InitialMagnification','fit');
+    % colorbar;
+    colorbar;
+    % imshow(R,[],'Xdata',theta,'Ydata',xp);
+    xlabel('\theta (degrees)');
+    ylabel('x''');
+    handles.matlabRadonTransformR = R;
+    handles.theta = theta;
+    guidata(hObject,handles);
+else
 end
-% close(inputImageMovie);
-% close(radonTransformMovie);
-% videoReaderInputImageMovie = VideoReader('inputImageMovie.mp4');
-% videoReaderRadonTransformMovie = VideoReader('radonTransformMovie.mp4');
+% --- End buttonMatlabRadonTransform
 
-axes(handles.axesInputImage);
+% --- Executes on button press in buttonMatlabIRadonTransform.
+function buttonMatlabIRadonTransform_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonMatlabIRadonTransform (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+matlabRadonTransformR = handles.matlabRadonTransformR;
+theta = handles.theta;
+matlabInverseRadonImage = iradon(matlabRadonTransformR,theta);
+axes(handles.axesMatlabIRadonTransform);
 hold off;
-imshow(inputImageMovie, 'Border', 'tight');
-
-% axes(handles.axesRadonTransformImage);
-% hold off;
-% imshow(radonMovie.cdata, 'Border', 'tight');
-% I should use getframe instead
-        
-    
-    
-    
-    
+imshow(matlabInverseRadonImage, []);
 
 
+
+% --- End buttonMatlabIRadonTransform
+
+
+% --- Executes on button press in buttonNguyenRadonTransform.
+function buttonNguyenRadonTransform_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonNguyenRadonTransform (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+inputImage = handles.inputImage;
+angleIncrement = handles.angleIncrement;
+if size(inputImage) > 0
+    theta = 0:angleIncrement:179;
+    [R,xp] = radon(inputImage,theta);
+    axes(handles.axesNguyenRadonTransform);
+    hold off;
+    % disp("Size of radon image:")
+    % disp(size(R))
+    imshow(R,[],'Xdata',theta,'Ydata',xp,'InitialMagnification','fit');
+    colorbar;
+    xlabel('\theta (degrees)');
+    ylabel('x''');
+else
+end
+% --- End buttonNguyenRadonTransform
+
+
+% --- Executes on button press in buttonNguyenBackprojection.
+function buttonNguyenBackprojection_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonNguyenBackprojection (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
