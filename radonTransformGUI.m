@@ -116,12 +116,12 @@ function buttonInputImage_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)'
 inputImage = [];
-inputImage = imread('testImage2.png');
-% inputImage = rgb2gray(inputImage);
+inputImage = imread('Lenna.png');
+inputImage = rgb2gray(inputImage);
+disp("Size of input image:")
+disp(size(inputImage));
 axes(handles.axesInputImage);
 hold off;
-% disp("Size of input image:")
-% disp(size(inputImage))
 imshow(inputImage)
 colorbar('Ticks',[0,64,128,192,256],...
          'TickLabels',{'0','64','128','192','256'});
@@ -174,32 +174,95 @@ imshow(matlabInverseRadonImage, []);
 
 % --- End buttonMatlabIRadonTransform
 
-
-% --- Executes on button press in buttonNguyenRadonTransform.
-function buttonNguyenRadonTransform_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonNguyenRadonTransform (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-inputImage = handles.inputImage;
-angleIncrement = handles.angleIncrement;
-if size(inputImage) > 0
-    theta = 0:angleIncrement:179;
-    [R,xp] = radon(inputImage,theta);
-    axes(handles.axesNguyenRadonTransform);
-    hold off;
-    % disp("Size of radon image:")
-    % disp(size(R))
-    imshow(R,[],'Xdata',theta,'Ydata',xp,'InitialMagnification','fit');
-    colorbar;
-    xlabel('\theta (degrees)');
-    ylabel('x''');
-else
-end
-% --- End buttonNguyenRadonTransform
-
-
 % --- Executes on button press in buttonNguyenBackprojection.
 function buttonNguyenBackprojection_Callback(hObject, eventdata, handles)
 % hObject    handle to buttonNguyenBackprojection (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+%% Minh Anh Nguyen
+% set some parameters
+inputImage = handles.inputImage;
+angleIncrement = handles.angleIncrement;
+thetas = 0:angleIncrement:179;
+% compute sinogram with matlab function
+sinogram = radon(inputImage,thetas);
+% % simple backprojection (schlegel & bille 9.1.2)
+%%http://www.mathworks.com/matlabcentral/fileexchange/34608-ct-reconstruction-package/content/ctRecontruction/myBackprojection.m
+% figure out how big our picture is going to be.
+ParallelProjections = size(sinogram,1);
+AngularProjections  = length(thetas);
+% convert thetas to radians
+thetas = (pi/180)*thetas;
+% set up the backprojected image
+backprojected = zeros(ParallelProjections,ParallelProjections);
+
+
+% find the middle index of the projections
+midindex = floor(ParallelProjections/2) + 1;
+% set up the coords of the image
+[xCoords,yCoords] = meshgrid(ceil(-ParallelProjections/2):ceil(ParallelProjections/2-1));
+% set up filter: now for the spatial domain!!!
+filterMode = 'sheppLogan'; % put either 'sheppLogan' or 'ramLak'
+
+if mod(ParallelProjections,2) == 0
+    halfFilterSize = floor(1 + ParallelProjections);
+else
+    halfFilterSize = floor(ParallelProjections);
+end
+
+if strcmp(filterMode,'ramLak')
+    filter = zeros(1,halfFilterSize);
+    filter(1:2:halfFilterSize) = -1./([1:2:halfFilterSize].^2 * pi^2);
+    filter = [fliplr(filter) 1/4 filter];
+elseif strcmp(filterMode,'sheppLogan')
+    filter = -2./(pi^2 * (4 * (-halfFilterSize:halfFilterSize).^2 - 1) );
+end
+
+% loop over each projection
+for i = 1:AngularProjections
+
+    % figure out which projections to add to which spots
+    rotCoords = round(midindex + xCoords*sin(thetas(i)) + yCoords*cos(thetas(i)));
+
+    % check which coords are in bounds
+    indices   = find((rotCoords > 0) & (rotCoords <= ParallelProjections));
+    newCoords = rotCoords(indices);
+    % filter
+    filteredProfile = conv(sinogram(:,i),filter,'same');
+
+    % summation
+     backprojected(indices) =  backprojected(indices) + filteredProfile(newCoords)./AngularProjections;
+   
+    % visualization on the fly
+    % imagesc( backprojected); title('backprojection without using iradon');
+    % drawnow
+
+end
+
+
+% % find the middle index of the projections
+midindex = floor(size(backprojected,1)/2) + 1;
+
+
+% % prepare filter for frequency domain without normalization
+[xCoords,yCoords] = meshgrid(1 - midindex:size(backprojected,1) - midindex);
+rampFilter2D      = sqrt(xCoords.^2 + yCoords.^2);
+
+% % 2 D Fourier transformation and sorting
+reconstruction2DFT = fftshift(fft2(backprojected));
+% % Filter in Freq Domain
+reconstruction2DFT = reconstruction2DFT .* rampFilter2D;
+ 
+% % inverse 2 D fourier transformation and sorting
+reconstruction2DFT = real( ifft2( ifftshift( reconstruction2DFT )));
+
+b4= mat2gray(reconstruction2DFT );
+%% rotating and clipping image Timothy Shepard
+disp("Size of b4 matrix: ");
+disp(size(b4));
+b4 = imrotate(b4, 90);
+%%
+axes(handles.axesNguyenRadonBackprojection);
+hold off;
+imshow(b4);
+title('filter backproject image using ifft2(ifftshift()) with gray background');
