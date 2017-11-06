@@ -55,6 +55,13 @@ function CTGui_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for CTGui
 handles.output = hObject;
 handles.aI = 1;
+
+im = phantom('Modified Shepp-Logan',256);
+axes(handles.axes1);
+imshow(im);
+handles.im = im;
+guidata(hObject,handles);
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -87,6 +94,10 @@ if user_cance
 end
 im = imread(path);
 im = im2double(im);
+szdim3 = size(im, 3);
+if szdim3 > 1
+    im = rgb2gray(im);
+end
 im2 = im; % for backup process
 axes(handles.axes1);
 imshow(im);
@@ -148,6 +159,8 @@ function radonButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 angleIncrement = handles.aI;
 im = handles.im;
+textOut = strcat(num2str(angleIncrement), "° Angle Increment");
+set(handles.radonAngleIncrementText, 'String', textOut);
 theta = 0:angleIncrement:179;
 [R,xp] = radon(im,theta);
 axes(handles.axes2);
