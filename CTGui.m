@@ -101,11 +101,12 @@ function slider1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-a = get(handles.slider1, 'Value');
-x = 0 : 0.1 : 50;
-y = sin(x*a);
-plot(handles.axes1, x, y)
-
+global angleIncrement;
+a = get(handles.slider1, 'Value'); % a is from 0 to 1
+x = 179;
+angleIncrement = round(floor(x*a)) + 1;
+textOut = strcat("= ", num2str(angleIncrement), '°');
+set(handles.angleIncrementText, 'String', textOut);
 
 % --- Executes during object creation, after setting all properties.
 function slider1_CreateFcn(hObject, eventdata, handles)
