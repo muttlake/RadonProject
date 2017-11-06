@@ -22,7 +22,7 @@ function varargout = CTGui(varargin)
 
 % Edit the above text to modify the response to help CTGui
 
-% Last Modified by GUIDE v2.5 05-Nov-2017 23:56:54
+% Last Modified by GUIDE v2.5 06-Nov-2017 03:06:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,7 +54,7 @@ function CTGui_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for CTGui
 handles.output = hObject;
-
+handles.aI = 1;
 % Update handles structure
 guidata(hObject, handles);
 
@@ -90,6 +90,10 @@ im = im2double(im);
 im2 = im; % for backup process
 axes(handles.axes1);
 imshow(im);
+handles.im = im;
+handles.im2 = im2;
+guidata(hObject,handles);
+
 
 
 
@@ -103,10 +107,14 @@ function slider1_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 global angleIncrement;
 a = get(handles.slider1, 'Value'); % a is from 0 to 1
-x = 179;
+x = 178;
 angleIncrement = round(floor(x*a)) + 1;
 textOut = strcat("= ", num2str(angleIncrement), '°');
 set(handles.angleIncrementText, 'String', textOut);
+handles.aI = angleIncrement;
+guidata(hObject,handles);
+
+
 
 % --- Executes during object creation, after setting all properties.
 function slider1_CreateFcn(hObject, eventdata, handles)
@@ -120,11 +128,40 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
 end
 
 
+
 % --- Executes on button press in pushbutton3.
 function pushbutton3_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-P = phantom('Modified Shepp-Logan',256);
+im = phantom('Modified Shepp-Logan',256);
 axes(handles.axes1);
-imshow(P);
+imshow(im);
+handles.im = im;
+guidata(hObject,handles);
+
+
+% --- Executes on button press in radonButton.
+function radonButton_Callback(hObject, eventdata, handles)
+% hObject    handle to radonButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+angleIncrement = handles.aI;
+im = handles.im;
+theta = 0:angleIncrement:179;
+[R,xp] = radon(im,theta);
+axes(handles.axes2);
+hold off;
+% disp("Size of radon image:")
+% disp(size(R))
+imshow(R,[],'Xdata',theta,'Ydata',xp,'InitialMagnification','fit');
+% colorbar;
+colorbar;
+% imshow(R,[],'Xdata',theta,'Ydata',xp);
+xlabel('\theta (degrees)');
+ylabel('x''');
+handles.matlabRadonTransformR = R;
+handles.theta = theta;
+guidata(hObject,handles);
+
+    
