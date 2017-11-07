@@ -36,7 +36,7 @@ class ProjectUI:
         quitButton = Button(toolbar, text="Quit", command=quit)
         quitButton.pack(side=RIGHT, padx=20, pady=20)
 
-        ctScanButton = Button(toolbar, text="CT Scan", command=self.getCTScan)
+        ctScanButton = Button(toolbar, text="CT Scan", command=self.doNothing)
         ctScanButton.pack(side=RIGHT, padx=20, pady=20)
 
         toolbar.pack(side=TOP, fill=X)
@@ -81,20 +81,20 @@ class ProjectUI:
         disp_im = disp_im.resize((400, 400), Image.ANTIALIAS)
         return ImageTk.PhotoImage(disp_im)
 
-    def getCTScan(self):
-        """ Get CT scan using CTScan class"""
-        if self.inputImage is not None:
-            CT = CTScan(self.inputImage, 1)
-            radon_transform = CT.doRadon(self.inputImage)
-            self.ctAcquisitionImage = radon_transform
-
-            displayImage = self.makeDisplayImage(self.ctAcquisitionImage)
-
-            self.ctAcquisitionImageLabel.configure(image=displayImage)
-            self.ctAcquisitionImageLabel.image = displayImage
-            self.setStatus("Ran CT Scan")
-        else:
-            print("No input image to transform.")
+    # def getCTScan(self):
+    #     """ Get CT scan using CTScan class"""
+    #     if self.inputImage is not None:
+    #         CT = CTScan(self.inputImage, 1)
+    #         radon_transform = CT.doRadon(self.inputImage)
+    #         self.ctAcquisitionImage = radon_transform
+    #
+    #         displayImage = self.makeDisplayImage(self.ctAcquisitionImage)
+    #
+    #         self.ctAcquisitionImageLabel.configure(image=displayImage)
+    #         self.ctAcquisitionImageLabel.image = displayImage
+    #         self.setStatus("Ran CT Scan")
+    #     else:
+    #         print("No input image to transform.")
 
     def doNothing(self):
         print("Not implemented yet.")
