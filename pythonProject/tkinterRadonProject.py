@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 from PIL import *
 import cv2
 from Scanner import Scanner
-import numpy as np
+from Scanner2D import Scanner2D
 
 
 
@@ -39,8 +39,11 @@ class ProjectUI:
         quitButton = Button(toolbar, text="Quit", command=quit)
         quitButton.pack(side=RIGHT, padx=20, pady=20)
 
-        ctScanButton = Button(toolbar, text="CT Scan", command=self.get1DCTScan)
+        ctScanButton = Button(toolbar, text="CT Scan 2D", command=self.getCTScan)
         ctScanButton.pack(side=RIGHT, padx=20, pady=20)
+
+        ctScan1DButton = Button(toolbar, text="CT Scan 1D", command=self.get1DCTScan)
+        ctScan1DButton.pack(side=RIGHT, padx=20, pady=20)
 
         toolbar.pack(side=TOP, fill=X)
 
@@ -57,6 +60,15 @@ class ProjectUI:
         empty_image_display = self.makeDisplayImage(empty_image, (400, 400))
         self.inputImageLabel = Label(mainFrame, width=400, height=400, image=empty_image_display)
         self.inputImageLabel.place(x=50, y=25)
+
+        degree0Label = Label(mainFrame, text="0°")
+        degree0Label.place(x=30, y=225)
+
+        degree90Label = Label(mainFrame, text="90°")
+        degree90Label.place(x=250, y=5)
+
+        degree180Label = Label(mainFrame, text="180°")
+        degree180Label.place(x=455, y=225)
 
         ## ****** 1D CT Scan ******
         self.ctScan1DLabel = Label(mainFrame, width=400, height=300, image=empty_image_display)
@@ -102,24 +114,28 @@ class ProjectUI:
 
             self.ctScan1DLabel.configure(image=displayImage)
             self.ctScan1DLabel.image = displayImage
-            self.setStatus("Ran 1D CT Scan")
+            self.setStatus("Ran 1D CT Scan at angle")
         else:
             print("No input image to do 1D transform.")
 
-    # def getCTScan(self):
-    #     """ Get CT scan using CTScan class"""
-    #     if self.inputImage is not None:
-    #         CT = CTScan(self.inputImage, 1)
-    #         radon_transform = CT.doRadon(self.inputImage)
-    #         self.ctAcquisitionImage = radon_transform
-    #
-    #         displayImage = self.makeDisplayImage(self.ctAcquisitionImage)
-    #
-    #         self.ctAcquisitionImageLabel.configure(image=displayImage)
-    #         self.ctAcquisitionImageLabel.image = displayImage
-    #         self.setStatus("Ran CT Scan")
-    #     else:
-    #         print("No input image to transform.")
+    def getCTScan(self):
+        """ Get CT scan using CTScan class"""
+        self.setStatus("Running Full CT Scan")
+        if self.inputImage is not None:
+
+            Scanner2 = Scanner2D(self.inputImage, 180)
+            Scanner2.radon2D()
+            radon_transf = Scanner2.getRadonImage()
+            print(radon_transf.shape)
+
+            displayImage = self.makeDisplayImage(radon_transf, (400, 400))
+
+            self.ctAcquisitionImageLabel.configure(image=displayImage)
+            self.ctAcquisitionImageLabel.image = displayImage
+            self.setStatus("Ran Full CT Scan")
+        else:
+            print("No input image to do 1D transform.")
+            print("No input image to transform.")
 
     def doNothing(self):
         print("Not implemented yet.")

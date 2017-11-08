@@ -8,6 +8,7 @@ from skimage.io import imread
 from skimage import data_dir
 from skimage.transform import radon, rescale
 from Scanner import Scanner
+from Scanner2D import Scanner2D
 
 
 # # load original image
@@ -33,13 +34,20 @@ from Scanner import Scanner
 # fig.savefig('plot.png')
 # print(values)
 
-lenna = cv2.imread("SheppLogan_Phantom.png")
+
+
+lenna = cv2.imread("testImage2.png")
 lenna = cv2.cvtColor(lenna, cv2.COLOR_RGB2GRAY)
 print(lenna.shape)
-Scanner = Scanner(lenna, 1)
-Scanner.getOneSinogram(0)
+# Scanner = Scanner(lenna, 1)
+# Scanner.getOneSinogram(0)
 
+Scanner2 = Scanner2D(lenna, 180)
+Scanner2.radon2D()
+radon_transf = Scanner2.getRadonImage()
 
+cv2.imshow("Radon Transform", radon_transf)
+cv2.waitKey()
 
 
 # while currentAngle <= 90:
