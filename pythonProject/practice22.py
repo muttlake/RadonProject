@@ -36,18 +36,18 @@ from Scanner2D import Scanner2D
 
 
 
-lenna = cv2.imread("testImage2.png")
-lenna = cv2.cvtColor(lenna, cv2.COLOR_RGB2GRAY)
-print(lenna.shape)
-# Scanner = Scanner(lenna, 1)
-# Scanner.getOneSinogram(0)
-
-Scanner2 = Scanner2D(lenna, 180)
-Scanner2.radon2D()
-radon_transf = Scanner2.getRadonImage()
-
-cv2.imshow("Radon Transform", radon_transf)
-cv2.waitKey()
+# lenna = cv2.imread("testImage2.png")
+# lenna = cv2.cvtColor(lenna, cv2.COLOR_RGB2GRAY)
+# print(lenna.shape)
+# # Scanner = Scanner(lenna, 1)
+# # Scanner.getOneSinogram(0)
+#
+# Scanner2 = Scanner2D(lenna, 180)
+# Scanner2.radon2D()
+# radon_transf = Scanner2.getRadonImage()
+#
+# cv2.imshow("Radon Transform", radon_transf)
+# cv2.waitKey()
 
 
 # while currentAngle <= 90:
@@ -67,29 +67,27 @@ cv2.waitKey()
 #
 #     currentAngle += angleIncrement
 
-# image = imread("SheppLogan_Phantom.png", as_grey=True)
-# #image = rescale(image, scale=0.4, mode='reflect')
-#
-# #fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4.5))
-# fig, ax1 = plt.subplots()
-# #ax1.set_title("Original")
-# #ax1.imshow(image, cmap='gray')
-# print(image.shape)
-#
-# test = (1, 1)
-#
-# #theta = np.linspace(0., 180., max(image.shape), endpoint=False)
-# theta = np.linspace(90., 90., max(image.shape), endpoint=False)
-#
-# print(theta)
-# sinogram = radon(image, theta=theta, circle=True)
-# ax1.set_title("Radon transform\n(Sinogram)")
-# #ax2.set_xlabel("Projection angle (deg)")
-# #ax2.set_ylabel("Projection position (pixels)")
-# plt.plot(sinogram)
-# #ax2.imshow(sinogram, cmap='gray',
-# #           extent=(0, 180, 0, sinogram.shape[0]), aspect='auto')
-# plt.show()
-# plt.close()
-#
-# fig.tight_layout()
+image = imread("SheppLogan_Phantom.png", as_grey=True)
+#image = imread(data_dir + "/phantom.png", as_grey=True)
+#image = rescale(image, scale=0.4, mode='reflect', multichannel=False)
+
+#fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4.5))
+
+fig, ax1 = plt.subplots()
+
+# ax1.set_title("Original")
+# ax1.imshow(image, cmap=plt.cm.Greys_r)
+
+test = (180, 180)
+
+theta = np.linspace(0., 180., max(test), endpoint=False)
+sinogram = radon(image, theta=theta, circle=True)
+ax1.set_title("Radon transform\n(Sinogram)")
+ax1.set_xlabel("Projection angle (deg)")
+ax1.set_ylabel("Projection position (pixels)")
+ax1.imshow(sinogram, cmap=plt.cm.Greys_r,
+           extent=(0, 180, 0, sinogram.shape[0]), aspect='auto')
+plt.show()
+plt.close()
+
+fig.tight_layout()

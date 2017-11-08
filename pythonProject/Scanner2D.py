@@ -23,6 +23,10 @@ class Scanner2D:
 
     def radon2D(self):
         """ Do one pass of radon , return list of 1D values """
+        (N, M) = self.inputImage.shape
+        angleCount = len(self.anglesArray)
+        self.cleanRadonMatrix()
+
         CT = CTScan(self.inputImage)
         angleIndex = 0
         for angle in self.anglesArray:
@@ -31,14 +35,36 @@ class Scanner2D:
             #print(values)
             valueIndex = 0
             for value in values:
-                self.radonOutput[valueIndex][angleIndex] = values[valueIndex]
+                self.radonOutput[valueIndex][angleCount - angleIndex - 1] = values[valueIndex]
                 valueIndex += 1
             #print("\nNow radon matrix is : ")
             #self.printUnsignedImage(self.radonOutput)
             angleIndex += 1
 
+    def cleanRadonMatrix(self):
+        """clean radon matrix"""
+        (N, M) = self.inputImage.shape
+        angleCount = len(self.anglesArray)
+        self.radonOutput = np.zeros((N, angleCount), np.float32)
+
+    def stepwiseRadon2D(self, angleIndex):
+        """ Do one pass of radon , return list of 1D values """
+        CT = CTScan(self.inputImage)
+        angleCount = len(self.anglesArray)
+        angle = self.anglesArray[angleIndex]
+        values = CT.onePassRadon(angle)
+        #print("\nAngle = ", angle)
+        #print(values)
+        valueIndex = 0
+        for value in values:
+            self.radonOutput[valueIndex][angleCount - angleIndex - 1] = values[valueIndex]
+            valueIndex += 1
+        #print("\nNow radon matrix is : ")
+        #self.printUnsignedImage(self.radonOutput)
+
     def convertPassesToAngleArray(self):
         """output the angle increment as a float over 180°"""
+        self.anglesArray = []
         if self.numPasses <= 0:
             #print("setting numPasses to 1")
             self.numPasses = 1
@@ -51,6 +77,10 @@ class Scanner2D:
             while currentAngle <= 180:
                 self.anglesArray.append(currentAngle)
                 currentAngle += angleIncrement
+
+    def getAnglesArray(self):
+        """return angles array"""
+        return self.anglesArray
 
     def getRadonImage(self):
         """ return uint8 radon image"""

@@ -6,12 +6,10 @@ from CTScan import CTScan
 
 class Scanner:
 
-    numPasses = None  # number of Radon Scans
     inputImage = None
 
-    def __init__(self, image, passes):
+    def __init__(self, image):
         self.inputImage = image
-        self.numPasses = passes
 
     def getOneSinogram(self, angle):
         """ Get a single sinogram for CT """

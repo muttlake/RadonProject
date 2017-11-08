@@ -11,12 +11,12 @@ class CTScan:
         """ Do one pass of radon , return list of 1D values """
         rotated_image = self.rotateImage(angleAmount)
         (N, M) = rotated_image.shape
-        radon_values = [0]*N
-        for radon_line in range(N):
+        radon_values = [0]*M
+        for radon_line in range(M):
             linesum = 0
-            for pixel in range(M):
-                linesum += rotated_image[radon_line][pixel]
-            radon_values[radon_line] = linesum
+            for pixel in range(N):
+                linesum += rotated_image[pixel][radon_line]
+            radon_values[M - radon_line - 1] = linesum
         return radon_values
 
     def rotateImage(self, angleAmount):
