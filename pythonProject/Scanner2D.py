@@ -49,6 +49,8 @@ class Scanner2D:
 
     def stepwiseRadon2D(self, angleIndex):
         """ Do one pass of radon , return list of 1D values """
+        if angleIndex == 0:
+            self.cleanRadonMatrix()
         CT = CTScan(self.inputImage)
         angleCount = len(self.anglesArray)
         angle = self.anglesArray[angleIndex]

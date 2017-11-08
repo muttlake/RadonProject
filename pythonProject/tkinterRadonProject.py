@@ -24,6 +24,9 @@ class ProjectUI:
     numAnglesTextBox = None
     angleIncrementLabel = None
 
+    StepWiseScanner2D = None
+    changeOccurred = False
+
     def __init__(self, master): # master means root or main window
 
         ## ****** Main Menu ******
@@ -113,6 +116,7 @@ class ProjectUI:
     def getInputImage(self):
         filename = filedialog.askopenfilename()
         print("Setting input image to: ", filename)
+        self.changeOccurred = True
 
         self.inputImage = cv2.imread(filename)
         self.inputImage = cv2.cvtColor(self.inputImage, cv2.COLOR_RGB2GRAY)
@@ -155,8 +159,11 @@ class ProjectUI:
         if self.numAngles is not None:
             numAngle2 = int(self.numAngles)
 
-        Scanner2Dobject = Scanner2D(self.inputImage, numAngle2)
-        anglesArray = Scanner2Dobject.getAnglesArray()
+        if self.StepWiseScanner2D is None or self.changeOccurred:
+            self.StepWiseScanner2D = Scanner2D(self.inputImage, numAngle2)
+            self.changeOccurred = False
+
+        anglesArray = self.StepWiseScanner2D.getAnglesArray()
 
         if self.currentAngleIndex is None:
             self.currentAngleIndex = 0
@@ -168,6 +175,17 @@ class ProjectUI:
 
         self.do1DCTScan(angle)
 
+        #Scanner2 = Scanner2D(self.inputImage, numAngle2)
+        self.StepWiseScanner2D.stepwiseRadon2D(self.currentAngleIndex)
+        current_radon_transf = self.StepWiseScanner2D .getRadonImage()
+        #print(current_radon_transf.shape)
+
+        displayImage = self.makeDisplayImage(current_radon_transf, (400, 400))
+
+        self.ctAcquisitionImageLabel.configure(image=displayImage)
+        self.ctAcquisitionImageLabel.image = displayImage
+        #self.setStatus("R")
+
 
     def retrieve_num_angles_input(self):
         self.numAngles = self.numAnglesTextBox.get("1.0", "end-1c")
@@ -178,6 +196,7 @@ class ProjectUI:
         else:
             angleIncrement = np.float(180)/np.float(self.numAngles)
             outputString = "The angle increment will be " + str(angleIncrement) + "°"
+            self.changeOccurred = True
         self.angleIncrementLabel.config(text=outputString)
         self.angleIncrementLabel.text = outputString
         #print(self.numAngles)
