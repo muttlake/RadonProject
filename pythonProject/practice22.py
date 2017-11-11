@@ -78,15 +78,35 @@ fig, ax1 = plt.subplots()
 # ax1.set_title("Original")
 # ax1.imshow(image, cmap=plt.cm.Greys_r)
 
-test = (180, 180)
+(N,M) = image.shape
+numAngles = 180
+angleIndex = 0
+radonOutput = np.zeros((N, numAngles), np.float32)
 
-theta = np.linspace(0., 180., max(test), endpoint=False)
-sinogram = radon(image, theta=theta, circle=True)
+numAngleToRun = 120
+maxAngle = 49
+
+# theta = np.linspace(0., maxAngle, 50, endpoint=False)
+# print(theta)
+# sinogram = radon(image, theta=theta, circle=True)
+
+for angle in range(numAngleToRun):
+    theta = np.linspace(angle, angle, 1, endpoint=False)
+    #print("Working on angle: ", theta)
+    sinogram = radon(image, theta=theta, circle=True)
+    for pixel in range(N):
+        radonOutput[pixel][angleIndex] = sinogram[pixel]
+    angleIndex += 1
+
+#print(sinogram)
+#print(sinogram.shape)
+
+
 ax1.set_title("Radon transform\n(Sinogram)")
 ax1.set_xlabel("Projection angle (deg)")
 ax1.set_ylabel("Projection position (pixels)")
-ax1.imshow(sinogram, cmap=plt.cm.Greys_r,
-           extent=(0, 180, 0, sinogram.shape[0]), aspect='auto')
+ax1.imshow(radonOutput, cmap=plt.cm.Greys_r,
+           extent=(0, 180, 0, radonOutput.shape[0]), aspect='auto')
 plt.show()
 plt.close()
 

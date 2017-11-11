@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 from CTScan import CTScan
+from skimage.io import imread
+from skimage import data_dir
+from skimage.transform import radon, rescale
 
 class Scanner2D:
 
@@ -40,6 +43,25 @@ class Scanner2D:
             #print("\nNow radon matrix is : ")
             #self.printUnsignedImage(self.radonOutput)
             angleIndex += 1
+
+    def radon2DSkimage(self):
+        """ Do one pass of radon , return list of 1D values """
+
+        fig, ax1 = plt.subplots()
+        numAngle = 1
+        test = (numAngle, numAngle)
+
+        theta = np.linspace(0., 0., max(test), endpoint=False)
+        print(theta)
+        sinogram = radon(image, theta=theta, circle=True)
+        print(sinogram)
+        ax1.set_title("Radon transform\n(Sinogram)")
+        ax1.set_xlabel("Projection angle (deg)")
+        ax1.set_ylabel("Projection position (pixels)")
+        ax1.imshow(sinogram, cmap=plt.cm.Greys_r,
+                   extent=(0, 1, 0, sinogram.shape[0]), aspect='auto')
+        plt.show()
+
 
     def cleanRadonMatrix(self):
         """clean radon matrix"""
