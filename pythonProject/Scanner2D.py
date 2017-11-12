@@ -12,6 +12,7 @@ class Scanner2D:
     radonOutput = None
     radonImage = None
     anglesArray = []
+    startOverStepWise = None
 
     def __init__(self, image, passes):
         self.inputImage = image
@@ -23,6 +24,7 @@ class Scanner2D:
         #print(self.anglesArray)
         self.radonOutput = np.zeros((N, numAngles), np.float32)
         self.radonImage = np.zeros((N, numAngles), np.uint8)
+        self.angleIndex = False
 
     def radon2D(self):
         """ Do one pass of radon , return list of 1D values """
@@ -44,35 +46,18 @@ class Scanner2D:
             #self.printUnsignedImage(self.radonOutput)
             angleIndex += 1
 
-    def radon2DSkimage(self):
-        """ Do one pass of radon , return list of 1D values """
-
-        fig, ax1 = plt.subplots()
-        numAngle = 1
-        test = (numAngle, numAngle)
-
-        theta = np.linspace(0., 0., max(test), endpoint=False)
-        print(theta)
-        sinogram = radon(image, theta=theta, circle=True)
-        print(sinogram)
-        ax1.set_title("Radon transform\n(Sinogram)")
-        ax1.set_xlabel("Projection angle (deg)")
-        ax1.set_ylabel("Projection position (pixels)")
-        ax1.imshow(sinogram, cmap=plt.cm.Greys_r,
-                   extent=(0, 1, 0, sinogram.shape[0]), aspect='auto')
-        plt.show()
-
-
     def cleanRadonMatrix(self):
         """clean radon matrix"""
         (N, M) = self.inputImage.shape
         angleCount = len(self.anglesArray)
         self.radonOutput = np.zeros((N, angleCount), np.float32)
 
+
     def stepwiseRadon2D(self, angleIndex):
         """ Do one pass of radon , return list of 1D values """
-        if angleIndex == 0:
+        if angleIndex == 0 or self.startOverStepWise:
             self.cleanRadonMatrix()
+            angleIndex = 0
         CT = CTScan(self.inputImage)
         angleCount = len(self.anglesArray)
         angle = self.anglesArray[angleIndex]

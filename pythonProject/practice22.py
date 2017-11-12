@@ -75,11 +75,14 @@ image = imread("SheppLogan_Phantom.png", as_grey=True)
 
 fig, ax1 = plt.subplots()
 
+angles = np.linspace(0, 180, 60, endpoint=True)
+print(angles)
+
 # ax1.set_title("Original")
 # ax1.imshow(image, cmap=plt.cm.Greys_r)
 
 (N,M) = image.shape
-numAngles = 180
+numAngles = 181
 angleIndex = 0
 radonOutput = np.zeros((N, numAngles), np.float32)
 
@@ -90,13 +93,13 @@ maxAngle = 49
 # print(theta)
 # sinogram = radon(image, theta=theta, circle=True)
 
-for angle in range(numAngleToRun):
+for angle in angles:
     theta = np.linspace(angle, angle, 1, endpoint=False)
     #print("Working on angle: ", theta)
     sinogram = radon(image, theta=theta, circle=True)
     for pixel in range(N):
-        radonOutput[pixel][angleIndex] = sinogram[pixel]
-    angleIndex += 1
+        radonOutput[pixel][int(angle)] = sinogram[pixel]
+    #angleIndex += 1
 
 #print(sinogram)
 #print(sinogram.shape)
