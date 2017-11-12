@@ -22,7 +22,7 @@ class Scanner2DSKI:
         self.convertPassesToAngleArray()
 
         (N, M) = self.inputImage.shape
-        self.radonOutput = np.zeros((N, 181), np.float32)
+        self.radonOutput = np.zeros((N, self.numAngles), np.float32)
 
         self.fig, self.ax1 = plt.subplots()
 
@@ -32,17 +32,19 @@ class Scanner2DSKI:
         (N, M) = self.inputImage.shape
         self.cleanRadonMatrix()
 
+        angleIndex = 0
         for angle in self.anglesArray:
             theta = np.linspace(angle, angle, 1, endpoint=False)
             sinogram = radon(self.inputImage, theta=theta, circle=True)
             for pixel in range(N):
-                self.radonOutput[pixel][int(angle)] = sinogram[pixel]
+                self.radonOutput[pixel][angleIndex] = sinogram[pixel]
+            angleIndex += 1
 
 
     def cleanRadonMatrix(self):
         """clean radon matrix"""
         (N, M) = self.inputImage.shape
-        self.radonOutput = np.zeros((N, 181), np.float32)
+        self.radonOutput = np.zeros((N, self.numAngles), np.float32)
 
 
     def stepwiseRadon2D(self, angle):

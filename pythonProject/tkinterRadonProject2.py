@@ -50,7 +50,10 @@ class ProjectUI:
         quitButton = Button(toolbar, text="Quit", command=quit)
         quitButton.pack(side=RIGHT, padx=20, pady=20)
 
-        ctScanButton = Button(toolbar, text="CT Scan 2D", command=self.getCTScan)
+        ctScanSKIButton = Button(toolbar, text="CT Scan Scikit Full", command=self.getCTScanSKI)
+        ctScanSKIButton.pack(side=RIGHT, padx=20, pady=20)
+
+        ctScanButton = Button(toolbar, text="CT Scan Full", command=self.getCTScan)
         ctScanButton.pack(side=RIGHT, padx=20, pady=20)
 
         ctStepwiseScanButton = Button(toolbar, text="CT Scan Step", command=self.doStepwiseCTScan)
@@ -142,18 +145,47 @@ class ProjectUI:
     def getCTScan(self):
         """ Get CT scan using CTScan class"""
         if self.inputImage is not None:
+            numAngle2 = 181
+            if self.numAngles is not None:
+                numAngle2 = int(self.numAngles)
+
+            Scanner2 = Scanner2D(self.inputImage, numAngle2)
+            Scanner2.radon2D()
+            radon_transf = Scanner2.getRadonImage()
+            print(radon_transf.shape)
+
+            displayImage = self.makeDisplayImage(radon_transf, (640, 480))
+
+            self.makeLeftSideArrows(180)
+            self.makeRightSideArrows(180)
+
+            self.ctAcquisitionImageLabel.configure(image=displayImage)
+            self.ctAcquisitionImageLabel.image = displayImage
+            self.setStatus("Ran Full CT Scan")
+        else:
+            print("No input image to do 1D transform.")
+            print("No input image to transform.")
+
+    def getCTScanSKI(self):
+        """ Get CT scan using CTScan class"""
+        if self.inputImage is not None:
             numAngles2 = 181
             if self.numAngles is not None:
                 numAngles2 = int(self.numAngles)
 
+
+            #rint("Number of angles in getCTScanSKI: ", numAngles2)
             Scanner2 = Scanner2DSKI(self.inputImage, numAngles2)
             Scanner2.radon2D()
             Scanner2.saveRadon2DImage()
 
             radon_transf = cv2.imread("radon2D_Image.png")
             radon_transf = cv2.cvtColor(radon_transf, cv2.COLOR_RGB2GRAY)
-            print("Scanner2DSKI radon_transf shape: ", radon_transf.shape)
+            #print("Scanner2DSKI radon_transf shape: ", radon_transf.shape)
             displayImage = self.makeDisplayImage(radon_transf, (640, 480))
+
+            self.makeLeftSideArrows(180)
+            self.makeRightSideArrows(180)
 
             self.ctAcquisitionImageLabel.configure(image=displayImage)
             self.ctAcquisitionImageLabel.image = displayImage
@@ -168,6 +200,11 @@ class ProjectUI:
         numAngle2 = 10
         if self.numAngles is not None:
             numAngle2 = int(self.numAngles)
+        else:
+            angleIncrement = np.float(180) / np.float(numAngle2)
+            outputString = "Setting the angle increment to  " + str(angleIncrement) + "°"
+            self.angleIncrementLabel.config(text=outputString)
+            self.angleIncrementLabel.text = outputString
 
         if self.StepWiseScanner2D is None or self.changeOccurred:
             self.StepWiseScanner2D = Scanner2D(self.inputImage, numAngle2)
@@ -207,8 +244,8 @@ class ProjectUI:
         self.numAngles = self.numAnglesTextBox.get("1.0", "end-1c")
         outputString = ""
         if self.numAngles == "":
-            outputString = "No number entered for number of angles."
-            self.numAngles="1"
+            outputString = "Setting default angle increment: 18°"
+            self.numAngles="10"
         else:
             angleIncrement = np.float(180)/np.float(self.numAngles)
             outputString = "The angle increment will be " + str(angleIncrement) + "°"
@@ -233,7 +270,7 @@ class ProjectUI:
 
         self.ctScan1DLabel.configure(image=displayImage)
         self.ctScan1DLabel.image = displayImage
-        statusString = "Ran 1D CT Scan at angle  " + str(angle) + "°"
+        statusString = "Ran 1D CT Scan at angle  " + str(180 - angle) + "°"
         self.setStatus(statusString)
 
 

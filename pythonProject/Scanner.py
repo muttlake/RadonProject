@@ -20,7 +20,7 @@ class Scanner:
         # plot one pass Radon
         #fig, ax1 = plt.subplots()
         values = CT.onePassRadon(angle)
-        titleString = "1D Sinogram at Angle: " + str(angle) + "°"
+        titleString = "1D Sinogram at Angle: " + str(180 - angle) + "°"
         self.ax1.set_title(titleString)
         plt.plot(values)
         self.fig.savefig('scanner_plot.png')
