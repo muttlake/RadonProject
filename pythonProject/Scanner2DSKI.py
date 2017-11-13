@@ -39,6 +39,7 @@ class Scanner2DSKI:
             for pixel in range(N):
                 self.radonOutput[pixel][angleIndex] = sinogram[pixel]
             angleIndex += 1
+        print("The size of the radonOutputSKI: ", self.radonOutput.shape)
 
 
     def cleanRadonMatrix(self):
@@ -61,8 +62,6 @@ class Scanner2DSKI:
         self.anglesArray = []
         if self.numAngles <= 0:
             self.numAngles = 1
-        if self.numAngles > 181:
-            self.numAngles = 181
         self.anglesArray = np.linspace(0, 180, self.numAngles, endpoint=True)
 
 

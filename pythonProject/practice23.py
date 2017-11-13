@@ -13,12 +13,7 @@ from Scanner2DSKI import Scanner2DSKI
 
 ## make rotated image
 
-lenna = cv2.imread("scanner_plot.png")
-lenna = cv2.cvtColor(lenna, cv2.COLOR_RGB2GRAY)
 
-(N, M) = lenna.shape
-
-print(lenna.shape)
 
 #
 # RotM = cv2.getRotationMatrix2D((N / 2, M / 2), 135, 1)
@@ -77,4 +72,11 @@ print(lenna.shape)
 #
 # root.mainloop()
 
+
+lenna = cv2.imread("scanner_plot.png")
+lenna = cv2.cvtColor(lenna, cv2.COLOR_RGB2GRAY)
+
+(N, M) = lenna.shape
+
+print(lenna.shape)
 

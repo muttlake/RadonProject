@@ -34,11 +34,13 @@ class Scanner2D:
 
         CT = CTScan(self.inputImage)
         angleIndex = 0
+
         for angle in self.anglesArray:
             values = CT.onePassRadon(angle)
             #print("\nAngle = ", angle)
             #print(values)
             valueIndex = 0
+            valueCount = len(values)
             for value in values:
                 self.radonOutput[valueIndex][angleCount - angleIndex - 1] = values[valueIndex]
                 valueIndex += 1
@@ -62,14 +64,11 @@ class Scanner2D:
         angleCount = len(self.anglesArray)
         angle = self.anglesArray[angleIndex]
         values = CT.onePassRadon(angle)
-        #print("\nAngle = ", angle)
-        #print(values)
         valueIndex = 0
+        valueCount = len(values)
         for value in values:
             self.radonOutput[valueIndex][angleCount - angleIndex - 1] = values[valueIndex]
             valueIndex += 1
-        #print("\nNow radon matrix is : ")
-        #self.printUnsignedImage(self.radonOutput)
 
     def convertPassesToAngleArray(self):
         """output the angle increment as a float over 180°"""
@@ -91,6 +90,7 @@ class Scanner2D:
         """return angles array"""
         return self.anglesArray
 
+
     def getRadonImage(self):
         """ return uint8 radon image"""
         maxValue = self.getMaxRadonValue()
@@ -101,6 +101,15 @@ class Scanner2D:
                 self.radonImage[row][col] = np.round(image_value)
         return self.radonImage
 
+
+    def getRawRadonMatrix(self):
+        """ return radon matrix"""
+        return self.radonOutput
+
+    def getRadonAnglesArray(self):
+        """ return radon angles """
+        return self.anglesArray
+
     def getMaxRadonValue(self):
         maxValue = -1
         (N, M) = self.radonOutput.shape
@@ -108,7 +117,6 @@ class Scanner2D:
             for col in range(M):
                 if self.radonOutput[row][col] > maxValue:
                     maxValue = self.radonOutput[row][col]
-        #print("The Max Value is: ", maxValue)
         return maxValue
 
     def printUnsignedImage(self, image):
