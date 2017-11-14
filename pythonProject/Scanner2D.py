@@ -37,15 +37,11 @@ class Scanner2D:
 
         for angle in self.anglesArray:
             values = CT.onePassRadon(angle)
-            #print("\nAngle = ", angle)
-            #print(values)
             valueIndex = 0
-            valueCount = len(values)
+            #valueCount = len(values)
             for value in values:
                 self.radonOutput[valueIndex][angleCount - angleIndex - 1] = values[valueIndex]
                 valueIndex += 1
-            #print("\nNow radon matrix is : ")
-            #self.printUnsignedImage(self.radonOutput)
             angleIndex += 1
 
     def cleanRadonMatrix(self):
@@ -65,7 +61,7 @@ class Scanner2D:
         angle = self.anglesArray[angleIndex]
         values = CT.onePassRadon(angle)
         valueIndex = 0
-        valueCount = len(values)
+        #valueCount = len(values)
         for value in values:
             self.radonOutput[valueIndex][angleCount - angleIndex - 1] = values[valueIndex]
             valueIndex += 1

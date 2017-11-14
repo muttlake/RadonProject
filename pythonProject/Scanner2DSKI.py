@@ -3,12 +3,14 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 from skimage.transform import radon
+from skimage.transform import iradon
 
 class Scanner2DSKI:
 
     numAngles = None  # number of Radon Scans
     inputImage = None
     radonOutput = None
+    iRadonOutput = None
     anglesArray = []
     fig = None
     ax1 = None
@@ -40,6 +42,13 @@ class Scanner2DSKI:
                 self.radonOutput[pixel][angleIndex] = sinogram[pixel]
             angleIndex += 1
         print("The size of the radonOutputSKI: ", self.radonOutput.shape)
+
+
+
+    def iRadon2D(self):
+        """ Do one pass of radon , return list of 1D values """
+        theta = np.linspace(0, 180, self.numAngles, endpoint=False)
+        self.iRadonOutput = iradon(self.radonOutput, theta=theta, circle=True)
 
 
     def cleanRadonMatrix(self):
@@ -77,4 +86,11 @@ class Scanner2DSKI:
         self.ax1.set_ylabel("Projection position (pixels)")
         self.ax1.imshow(self.radonOutput, cmap=plt.cm.Greys_r, extent=(0, 180, 0, self.radonOutput.shape[0]), aspect='auto')
         self.fig.savefig('radon2D_Image.png')
+        self.ax1.cla()
+
+    def saveIRadon2DImage(self):
+        """ Save radon 2D image to file"""
+        self.ax1.set_title("Reconstruction\nFiltered back projection")
+        self.ax1.imshow(self.iRadonOutput, cmap=plt.cm.Greys_r)
+        self.fig.savefig('iradon2D_Image.png')
         self.ax1.cla()

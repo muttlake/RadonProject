@@ -57,8 +57,6 @@ class ProjectUI:
         quitButton = Button(toolbar, text="Quit", command=quit)
         quitButton.pack(side=RIGHT, padx=20, pady=20)
 
-
-
         ctScanButton = Button(toolbar, text="CT Scan Full", command=self.getCTScan)
         ctScanButton.pack(side=RIGHT, padx=20, pady=20)
 
@@ -76,16 +74,19 @@ class ProjectUI:
         self.mainframe.pack()
 
         ## ****** Input image ******
+        empty_image2 = cv2.imread("empty_image.jpg")
+        empty_image_display2 = self.makeDisplayImage(empty_image2, (640, 480))
+
         empty_image = cv2.imread("empty_image.jpg")
         empty_image_display = self.makeDisplayImage(empty_image, (400, 400))
         self.inputImageLabel = Label(self.mainframe, width=400, height=400, image=empty_image_display)
         self.inputImageLabel.place(x=50, y=25)
 
-        degree180Label = Label(self.mainframe, text="180°", bg="gainsboro")
-        degree180Label.place(x=240, y=2)
+        nLabel = Label(self.mainframe, text="N", bg="gainsboro")
+        nLabel.place(x=450, y=2)
 
-        degree0Label = Label(self.mainframe, text="0°", bg="gainsboro")
-        degree0Label.place(x=225, y=430)
+        zLabel = Label(self.mainframe, text="0", bg="gainsboro")
+        zLabel.place(x=450, y=430)
 
 
         ## ****** Make Arrow above 1D Radon Transform ******
@@ -101,10 +102,19 @@ class ProjectUI:
         ## ****** 1D CT Scan ******
         self.ctScan1DLabel = Label(self.mainframe, width=300, height=225, image=empty_image_display)
         self.ctScan1DLabel.place(x=510, y=75)
+        self.ctScan1DLabel.configure(image=empty_image_display)
+        self.ctScan1DLabel.image = empty_image_display
 
         ## ****** CT Scan Image ******
-        self.ctAcquisitionImageLabel = Label(self.mainframe, width=640, height=480, image=empty_image_display)
+        self.ctAcquisitionImageLabel = Label(self.mainframe, width=640, height=480, image=empty_image_display2)
         self.ctAcquisitionImageLabel.place(x=835, y=5)
+
+        n2Label = Label(self.mainframe, text="N", bg="gainsboro")
+        n2Label.place(x=816, y=470)
+
+        z2Label = Label(self.mainframe, text="0", bg="gainsboro")
+        z2Label.place(x=816, y=5)
+
 
         ## ****** Get Number of Angles between 0 and 180 ******
         numAnglesLabel = Label(self.mainframe, text="Enter number of angles desired (will range from 0° to 180°):")
@@ -121,15 +131,45 @@ class ProjectUI:
         self.ctBackProjectionLabel = Label(self.mainframe, width=400, height=400, image=empty_image_display)
         self.ctBackProjectionLabel.place(x=50, y=575)
 
+
         ## ****** SciKit Radon and IRadon BackProjection Image ******
         self.scikitRadonAndIradonLabel = Label(self.mainframe, width=640, height=480, image=empty_image_display)
         self.scikitRadonAndIradonLabel.place(x=835, y=515)
+        self.scikitRadonAndIradonLabel.configure(image=empty_image_display2)
+        self.scikitRadonAndIradonLabel.image = empty_image_display2
+
+
+        canvas3 = Canvas(self.mainframe, width=750, height=10, bg="gainsboro", bd=0, highlightthickness=0, relief='ridge')
+        canvas3.place(x=750, y=500)
+        blackLine = canvas3.create_line(0, 5, 750, 5, tags=("line",), fill="black")
+
+        canvas4 = Canvas(self.mainframe, width=10, height=500, bg="gainsboro", bd=0, highlightthickness=0, relief='ridge')
+        canvas4.place(x=750, y=500)
+        blackLine = canvas4.create_line(9, 5, 9, 500, tags=("line",), fill="black")
+
+        labelImage = cv2.imread("label1rot.png")
+        labelImageDisplay = self.makeDisplayImage(labelImage, (200, 22))
+
+        # scikitLabel = Label(self.mainframe, width=44, height=250, image=labelImageDisplay)
+        # scikitLabel.place(x=780, y=550)
+        #
+        # scikitLabel.configure(image=labelImageDisplay)
+        # scikitLabel.image = labelImageDisplay
+
+        # canvas5 = Canvas(self.mainframe, width=60, height=480, bg="gainsboro", bd=0, highlightthickness=0, relief='ridge')
+        # canvas5.place(x=760, y=520)
+        # textID = canvas5.create_text(5, 5, anchor="nw", text="Python Scikit-Image Radon")
+
+
+
+        # radonLabel = Label(self.mainframe, text = "CT Scan (Radon Transform)", bg="gainsboro", font=("Helvetica", 16))
+        # radonLabel.place(x=560, y=20)
 
 
         ## ****** Bottom Toolbar ******
         toolbarBottom = Frame(master, bg="azure3")
 
-        backprojectorSKIButton = Button(toolbarBottom, text="IRadon Scikit Full", command=self.doNothing)
+        backprojectorSKIButton = Button(toolbarBottom, text="IRadon Scikit Full", command=self.getIRadonSKI)
         backprojectorSKIButton.pack(side=RIGHT, padx=20, pady=20)
 
         ctScanSKIButton = Button(toolbarBottom, text="CT Scan Scikit Full", command=self.getCTScanSKI)
@@ -220,6 +260,40 @@ class ProjectUI:
             radon_transf = cv2.cvtColor(radon_transf, cv2.COLOR_RGB2GRAY)
             #print("Scanner2DSKI radon_transf shape: ", radon_transf.shape)
             displayImage = self.makeDisplayImage(radon_transf, (640, 480))
+
+            self.makeArrows(180)
+
+            self.scikitRadonAndIradonLabel.configure(image=displayImage)
+            self.scikitRadonAndIradonLabel.image = displayImage
+            self.setStatus("Ran SciKit CT Scan for all Angles")
+            # Do 1D CT Scan
+            self.do1DCTScan(0)
+        else:
+            self.setStatus("Please choose an input image.")
+
+    def getIRadonSKI(self):
+        """ Get CT scan using CTScan class"""
+        if self.inputImage is not None:
+            numAngles2 = 10  # default number of angles
+            if self.numAngles is not None:
+                numAngles2 = int(self.numAngles)
+            else:
+                angleIncrement = np.float(180) / np.float(numAngles2)
+                outputString = "Setting the angle increment to  " + str(angleIncrement) + "°"
+                self.angleIncrementLabel.config(text=outputString)
+                self.angleIncrementLabel.text = outputString
+
+
+            #rint("Number of angles in getCTScanSKI: ", numAngles2)
+            Scanner2 = Scanner2DSKI(self.inputImage, numAngles2)
+            Scanner2.radon2D()
+            Scanner2.iRadon2D()
+            Scanner2.saveIRadon2DImage()
+
+            iradon = cv2.imread("iradon2D_Image.png")
+            iradon = cv2.cvtColor(iradon, cv2.COLOR_RGB2GRAY)
+            #print("Scanner2DSKI radon_transf shape: ", radon_transf.shape)
+            displayImage = self.makeDisplayImage(iradon, (640, 480))
 
             self.makeArrows(180)
 
