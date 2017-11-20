@@ -100,10 +100,15 @@ class CTScanBackprojector:
             for col in range(M):
                 image_value = self.backProjectionMatrix[row + row_shift][col + col_shift]/maxValue * 255
                 self.outputImage[row][col] = np.round(image_value)
-        print("The maximum value for the image is: ", self.getMaxImageValue(self.outputImage))
-        print("The minimum value for the image is: ", self.getMinImageValue(self.outputImage))
-        self.outputImage = self.post_process_image(self.outputImage)
+        #print("The maximum value for the image is: ", self.getMaxImageValue(self.outputImage))
+        #print("The minimum value for the image is: ", self.getMinImageValue(self.outputImage))
+        #self.outputImage = self.post_process_image(self.outputImage)
         return self.outputImage
+
+    def getPostProcessedRadonImage(self, image):
+        """ return uint8 radon image"""
+        post_process_image = self.post_process_image(image)
+        return post_process_image
 
     def getMaxValue(self):
         maxValue = -1

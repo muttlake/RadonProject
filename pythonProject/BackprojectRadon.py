@@ -19,7 +19,7 @@ class BackprojectRadon:
         (NR, AR) = self.radonMatrix.shape
         radonLineValues = [0] * NR
 
-        rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle * -1)
+        rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle)
         (N, M) = rotated_backProjection.shape
         print("rotated_backProjection.shape: ", rotated_backProjection.shape)
         for row in range(N):
@@ -27,9 +27,9 @@ class BackprojectRadon:
                 colShift = round(M / 4)
                 currentValue = rotated_backProjection[row][col + colShift]
                 backprojectionValue = self.radonMatrix[col, angleIndex]
-                rotated_backProjection[row][col + colShift] = currentValue + backprojectionValue
+                rotated_backProjection[row][(M-1) - (col + colShift)] = currentValue + backprojectionValue
 
-        self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle)
+        self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle*-1)
         return self.backProjectionMatrix
 
 
@@ -56,8 +56,13 @@ class BackprojectRadon:
             for col in range(M):
                 image_value = self.backProjectionMatrix[row + row_shift][col + col_shift]/maxValue * 255
                 self.outputImage[row][col] = np.round(image_value)
-        self.outputImage = self.post_process_image(self.outputImage)
+        #self.outputImage = self.post_process_image(self.outputImage)
         return self.outputImage
+
+    def getPostProcessedBackprojectionImage(self, image):
+        """ return uint8 radon image"""
+        post_processed_image = self.post_process_image(image)
+        return post_processed_image
 
     def getMaxValue(self):
         maxValue = -1
