@@ -6,8 +6,6 @@ from skimage.transform import radon
 from skimage.transform import iradon
 
 class Scanner2DSKI:
-
-    numAngles = None  # number of Radon Scans
     inputImage = None
     radonOutput = None
     iRadonOutput = None
@@ -16,15 +14,14 @@ class Scanner2DSKI:
     ax1 = None
 
 
-    def __init__(self, image, numAngles):
+    def __init__(self, image, angArray):
         """ Make angles array and initialize radon output matrix"""
         self.inputImage = image
 
-        self.numAngles = numAngles
-        self.convertPassesToAngleArray()
+        self.anglesArray = angArray
 
         (N, M) = self.inputImage.shape
-        self.radonOutput = np.zeros((N, self.numAngles), np.float32)
+        self.radonOutput = np.zeros((N, len(self.anglesArray)), np.float32)
 
         self.fig, self.ax1 = plt.subplots()
 
@@ -47,14 +44,14 @@ class Scanner2DSKI:
 
     def iRadon2D(self):
         """ Do one pass of radon , return list of 1D values """
-        theta = np.linspace(0, 180, self.numAngles, endpoint=False)
+        theta = np.linspace(0, 180, len(self.anglesArray), endpoint=False)
         self.iRadonOutput = iradon(self.radonOutput, theta=theta, circle=True)
 
 
     def cleanRadonMatrix(self):
         """clean radon matrix"""
         (N, M) = self.inputImage.shape
-        self.radonOutput = np.zeros((N, self.numAngles), np.float32)
+        self.radonOutput = np.zeros((N, len(self.anglesArray)), np.float32)
 
 
     def stepwiseRadon2D(self, angle):

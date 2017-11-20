@@ -14,7 +14,7 @@ class Scanner2D:
     anglesArray = []
     startOverStepWise = None
 
-    def __init__(self, image, passes):
+    def __init__(self, image, passes, current_radon_transform):
         self.inputImage = image
         self.numPasses = passes
         (N, M) = self.inputImage.shape
@@ -22,7 +22,7 @@ class Scanner2D:
         numAngles = len(self.anglesArray)
         #print("This is the angles array")
         #print(self.anglesArray)
-        self.radonOutput = np.zeros((N, numAngles), np.float32)
+        self.radonOutput = current_radon_transform
         self.radonImage = np.zeros((N, numAngles), np.uint8)
         self.angleIndex = False
 

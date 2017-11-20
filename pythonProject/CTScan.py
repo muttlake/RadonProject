@@ -2,8 +2,6 @@ import cv2
 
 class CTScan:
 
-    inputImage = None  # cv2 image
-
     def __init__(self, image):
         self.inputImage = image
 
@@ -21,6 +19,6 @@ class CTScan:
 
     def rotateImage(self, angleAmount):
         (N, M) = self.inputImage.shape
-        RotM = cv2.getRotationMatrix2D((N / 2, M / 2), angleAmount, 1)
+        RotM = cv2.getRotationMatrix2D((N / 2, M / 2), angleAmount*-1, 1)
         rotated_image = cv2.warpAffine(self.inputImage, RotM, (N, M))
         return rotated_image
