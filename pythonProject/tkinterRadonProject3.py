@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from RadonTransform import RadonTransform
 from Scanner2DSKI import Scanner2DSKI
-
+from BackprojectRadon import BackprojectRadon
 
 
 class RadonProject_UI:
@@ -34,6 +34,10 @@ class RadonProject_UI:
     current_angle_index = None
     current_radon_transform = []
     N = None
+
+    # inverse radon variables
+    radon_transform_complete = False
+    backprojection_matrix = []
 
     # reset for radon
     reset_for_radon = False
@@ -164,7 +168,7 @@ class RadonProject_UI:
 
         ### ****** Step IRadon Transform Button ******
         step_iradon_Button = Button(self.mainframe, text="Transform", bd=0, highlightthickness=0, relief='ridge',
-                                   command=self.doNothing)
+                                   command=self.stepBackprojection)
         step_iradon_Button.grid(row=4, column=8, columnspan=2, rowspan=2, sticky=W, padx=0, pady=0)
 
         buttonImageDown = cv2.imread("greenArrowDown.png")
@@ -255,6 +259,7 @@ class RadonProject_UI:
 
         if self.current_angle_index == 0:
             self.current_radon_transform = np.zeros((self.N, len(self.radon_angles_array)), np.float32)
+            self.radon_transform_complete = False
 
         CTScanner = RadonTransform(self.inputImage, self.radon_angles_array, self.current_radon_transform)
 
@@ -268,6 +273,10 @@ class RadonProject_UI:
         self.displayImageOnLabel(self.radon_1D_ImageLabel, sinogram1DImage, self.IMAGE_SIZE_SMALL)
         self.displayImageOnLabel(self.radon_2D_ImageLabel, radon_transf_image, self.IMAGE_SIZE_LONG)
 
+        if self.current_angle_index == len(self.radon_angles_array) - 1:
+            self.radon_transform_complete = True
+
+
         self.current_angle_index = (self.current_angle_index + 1) % len(self.radon_angles_array)
 
         if self.reset_for_radon:
@@ -277,6 +286,36 @@ class RadonProject_UI:
         self.setStatus(statusString)
 
         self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
+
+    # stepwise Radon
+
+    def stepBackprojection(self):
+        """ Step Backprojector """
+        if self.inputImage is None:
+            self.setStatus("Please choose an input image.")
+            return
+
+        if not self.radon_transform_complete:
+            self.setStatus("Cannot backproject. Radon transform not complete.")
+            return
+
+        if self.current_angle_index == 0:
+            (N, M) = self.inputImage.shape
+            self.backProjectionMatrix = np.zeros((N * 2, M * 2), np.float32)
+
+        Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
+                                          self.current_radon_transform, self.backProjectionMatrix)
+        self.backProjectionMatrix = Backprojector.stepwiseBackprojection(self.current_angle_index)
+        backprojection_image = Backprojector.getBackprojectionImage()
+        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, backprojection_image, self.IMAGE_SIZE)
+
+        self.current_angle_index = (self.current_angle_index + 1) % len(self.radon_angles_array)
+
+        statusString = "Ran backprojection for angle  " + str(self.radon_angles_array[self.current_angle_index - 1]) + "°"
+        self.setStatus(statusString)
+
+        self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
+
 
     # Scikit Radon
 
