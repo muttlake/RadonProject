@@ -39,6 +39,7 @@ class RadonProject_UI:
     radon_transform_complete = False
     backprojection_matrix = []
     backprojection_image = None
+    backprojectionFilter = None
 
     # reset for radon
     reset_for_radon = False
@@ -188,7 +189,8 @@ class RadonProject_UI:
         ## ****** Bottom Toolbar ******
         toolbarBottom = Frame(master, bg="slate gray")
 
-        differenceButton = Button(toolbarBottom, text="Difference: Input - Backprojection", command=self.doNothing)
+        differenceButton = Button(toolbarBottom, text="Difference: Input - Backprojection",
+                                  command=self.input_and_backprojection_Image_Difference)
         differenceButton.pack(side=LEFT, padx=20, pady=20)
 
         postProcessBackprojectionButton = Button(toolbarBottom, text="Post-Process Backprojection",
@@ -197,6 +199,12 @@ class RadonProject_UI:
 
         full_backprojection_Button = Button(toolbarBottom, text="All Backprojections", command=self.allBackprojections)
         full_backprojection_Button.pack(side=LEFT, padx=20, pady=20)
+
+        self.backprojectionFilter = StringVar(toolbarBottom)
+        self.backprojectionFilter.set("Filter for Backprojections");
+
+        backprojectionPullDown = OptionMenu(toolbarBottom, self.backprojectionFilter, "No Filter", "Ram-Lak", "Low-pass")
+        backprojectionPullDown.pack(side=LEFT, padx=20, pady=20)
 
         backprojectorSKIButton = Button(toolbarBottom, text="IRadon Scikit Full", command=self.getIRadonSciKit)
         backprojectorSKIButton.pack(side=RIGHT, padx=20, pady=20)
@@ -398,12 +406,33 @@ class RadonProject_UI:
             self.setStatus("Cannot post-process image. No backprojections are complete.")
         Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
                                           self.current_radon_transform, self.backProjectionMatrix)
-        postprocess_backprojection_image = Backprojector.getPostProcessedBackprojectionImage(self.backprojection_image)
-        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, postprocess_backprojection_image, self.IMAGE_SIZE)
+        self.backprojection_image = Backprojector.getPostProcessedBackprojectionImage(self.backprojection_image)
+        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
 
         statusString = "Post-processed backprojection image."
         self.setStatus(statusString)
 
+    def input_and_backprojection_Image_Difference(self):
+        """ Difference between input image and backprojection image """
+        if self.inputImage is None:
+            self.setStatus("Please choose an input image.")
+            return
+
+        if self.backprojection_image is None:
+            self.setStatus("Please do backprojections before running difference.")
+
+        (N, M) = self.inputImage.shape
+        image_diff = np.zeros((N , M), np.uint8)
+        for ii in range(N):
+            for jj in range(M):
+                diff_value = np.abs(self.inputImage[ii][jj] - self.backprojection_image[ii][jj])
+                if diff_value < 0:
+                    diff_value = 0
+                elif diff_value > 255:
+                    diff_value = 255
+                image_diff[ii][jj] = diff_value
+        self.displayImageOnLabel(self.backprojection_Difference_ImageLabel, image_diff, self.IMAGE_SIZE)
+        self.setStatus("Ran image difference: Input Image - Backprojection Image")
 
     # Scikit Radon
 

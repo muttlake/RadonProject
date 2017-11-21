@@ -15,6 +15,7 @@ class CTScan:
             for pixel in range(N):
                 linesum += rotated_image[pixel][radon_line]
             radon_values[M - radon_line - 1] = linesum
+        #print(radon_values)
         return radon_values
 
     def rotateImage(self, angleAmount):
