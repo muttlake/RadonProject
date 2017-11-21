@@ -19,17 +19,39 @@ class BackprojectRadon:
         (NR, AR) = self.radonMatrix.shape
         radonLineValues = [0] * NR
 
-        rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle)
+        rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle*-1)
         (N, M) = rotated_backProjection.shape
-        print("rotated_backProjection.shape: ", rotated_backProjection.shape)
+        #print("rotated_backProjection.shape: ", rotated_backProjection.shape)
         for row in range(N):
             for col in range(len(radonLineValues)):
                 colShift = round(M / 4)
                 currentValue = rotated_backProjection[row][col + colShift]
                 backprojectionValue = self.radonMatrix[col, angleIndex]
-                rotated_backProjection[row][(M-1) - (col + colShift)] = currentValue + backprojectionValue
+                rotated_backProjection[row][(col + colShift)] = currentValue + backprojectionValue
 
-        self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle*-1)
+        self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle)
+        return self.backProjectionMatrix
+
+    # full backprojection of radon
+    def fullBackprojection(self):
+        """ Do one pass of radon , return list of 1D values """
+        (NR, AR) = self.radonMatrix.shape
+        angle_index = 0
+        for angle in self.anglesArray:
+            angle = self.anglesArray[angle_index]
+            radonLineValues = [0] * NR
+
+            rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle*-1)
+            (N, M) = rotated_backProjection.shape
+            for row in range(N):
+                for col in range(len(radonLineValues)):
+                    colShift = round(M / 4)
+                    currentValue = rotated_backProjection[row][col + colShift]
+                    backprojectionValue = self.radonMatrix[col, angle_index]
+                    rotated_backProjection[row][(col + colShift)] = currentValue + backprojectionValue
+            angle_index += 1
+            self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle)
+
         return self.backProjectionMatrix
 
 

@@ -38,6 +38,7 @@ class RadonProject_UI:
     # inverse radon variables
     radon_transform_complete = False
     backprojection_matrix = []
+    backprojection_image = None
 
     # reset for radon
     reset_for_radon = False
@@ -72,12 +73,29 @@ class RadonProject_UI:
         getImageButton.pack(side=LEFT, padx=20, pady=20)
 
         projectNameLabel = Label(toolbar, text = "CT Scan / Radon Project", font=myLargeFont, bg="slate gray")
-        projectNameLabel.pack(side=LEFT, padx=100, pady=20)
+        projectNameLabel.pack(side=LEFT, padx=10, pady=20)
 
         quitButton = Button(toolbar, text="Quit", command=quit)
         quitButton.pack(side=RIGHT, padx=20, pady=20)
 
+        fullRadonButton = Button(toolbar, text="Run Full Scan", command=self.fullRadon)
+        fullRadonButton.pack(side=RIGHT, padx=20, pady=20)
+
+        ## ****** Number of Additional Angles between 0 and 180 Widget ******
+
+        buttonCommitNumAngles = Button(toolbar, text="Set Angles", command=self.makeRadonAnglesArray)
+        buttonCommitNumAngles.pack(side=RIGHT, padx=20, pady=20)
+
+        self.number_angles_Entry = Entry(toolbar)
+        self.number_angles_Entry.pack(side=RIGHT, padx=10, pady=20)
+        self.number_angles_Entry.insert(0, '10')
+
+        num_Angles_Label = Label(toolbar, text="Enter number angles from 0° to 180°:", font=myStatusFont, bg="slate gray")
+        num_Angles_Label.pack(side=RIGHT, padx=0, pady=20)
+
         toolbar.pack(side=TOP, fill=X)
+
+
 
         ## ****** Status Bar ******
         self.statusLabel = Label(root, text="Started Project GUI", bd=1, relief=SUNKEN, anchor=W, font=myStatusFont, fg="maroon")
@@ -99,7 +117,7 @@ class RadonProject_UI:
         ### ****** Step Radon Transform Button ******
         step_radon_Button = Button(self.mainframe, text="Transform", bd=0, highlightthickness=0, relief='ridge',
                                    command=self.stepRadon)
-        step_radon_Button.grid(row=0, column=5, columnspan=1, rowspan=4, sticky=W, padx=0, pady=25)
+        step_radon_Button.grid(row=0, column=5, columnspan=1, rowspan=4, sticky=W, padx=0, pady=0)
 
         buttonImage = cv2.imread("greenArrow.png")
         buttonImageDisplay = self.makeDisplayImage(buttonImage, (40, 40))
@@ -109,7 +127,7 @@ class RadonProject_UI:
 
         ## ****** Radon 1D Image ******
         self.radon_1D_ImageLabel = Label(self.mainframe)
-        self.radon_1D_ImageLabel.grid(row=0, column=6, columnspan=4, rowspan=4, sticky=W, padx=50, pady=30)
+        self.radon_1D_ImageLabel.grid(row=0, column=6, columnspan=4, rowspan=3, sticky=W, padx=50, pady=30)
 
         ## ****** Radon 2D Image ******
         self.radon_2D_ImageLabel = Label(self.mainframe)
@@ -117,15 +135,15 @@ class RadonProject_UI:
 
         ## ****** Scikit Radon/Iradon Image ******
         self.scikit_radon_iradon_ImageLabel = Label(self.mainframe)
-        self.scikit_radon_iradon_ImageLabel.grid(row=6, column=10, columnspan=4, rowspan=4, sticky=W, padx=50, pady=30)
+        self.scikit_radon_iradon_ImageLabel.grid(row=5, column=10, columnspan=4, rowspan=4, sticky=W, padx=50, pady=30)
 
         ## ****** Backprojection 2D Image ******
         self.backprojection_2D_ImageLabel = Label(self.mainframe)
-        self.backprojection_2D_ImageLabel.grid(row=6, column=6, columnspan=4, rowspan=4, sticky=W, padx=50, pady=30)
+        self.backprojection_2D_ImageLabel.grid(row=5, column=6, columnspan=4, rowspan=4, sticky=W, padx=50, pady=30)
 
         ## ****** Backprojection Difference Image ******
         self.backprojection_Difference_ImageLabel = Label(self.mainframe)
-        self.backprojection_Difference_ImageLabel.grid(row=6, column=1, columnspan=4, rowspan=4, sticky=W, padx=50, pady=30)
+        self.backprojection_Difference_ImageLabel.grid(row=5, column=1, columnspan=4, rowspan=4, sticky=W, padx=30, pady=30)
 
 
 
@@ -155,21 +173,12 @@ class RadonProject_UI:
         self.backprojection_Difference_ImageLabel.configure(image=empty_image_display)
         self.backprojection_Difference_ImageLabel.image = empty_image_display
 
-        ## ****** Number of Additional Angles between 0 and 180 Widget ******
-        num_Angles_Label = Label(self.mainframe, text="Enter the number of additional angles between 0° and 180°:", font=mySmallFont, bg="gainsboro")
-        num_Angles_Label.grid(row=4, column=0, columnspan=2, rowspan=1, sticky=W, padx=10, pady=10)
 
-        self.number_angles_Entry = Entry(self.mainframe)
-        self.number_angles_Entry.grid(row=5, column=1, columnspan=1, rowspan=1, sticky=W)
-        self.number_angles_Entry.insert(0, '10')
-
-        buttonCommitNumAngles = Button(self.mainframe, text="Commit", command=self.makeRadonAnglesArray)
-        buttonCommitNumAngles.grid(row=5, column=2, columnspan=1, rowspan=1, sticky=W)
 
         ### ****** Step IRadon Transform Button ******
         step_iradon_Button = Button(self.mainframe, text="Transform", bd=0, highlightthickness=0, relief='ridge',
                                    command=self.stepBackprojection)
-        step_iradon_Button.grid(row=4, column=8, columnspan=2, rowspan=2, sticky=W, padx=0, pady=0)
+        step_iradon_Button.grid(row=3, column=8, columnspan=1, rowspan=1, sticky=W, padx=0, pady=0)
 
         buttonImageDown = cv2.imread("greenArrowDown.png")
         buttonImageDownDisplay = self.makeDisplayImage(buttonImageDown, (40, 40))
@@ -182,8 +191,12 @@ class RadonProject_UI:
         differenceButton = Button(toolbarBottom, text="Difference: Input - Backprojection", command=self.doNothing)
         differenceButton.pack(side=LEFT, padx=20, pady=20)
 
-        backprojectorButton = Button(toolbarBottom, text="Backproject Full", command=self.doNothing)
-        backprojectorButton.pack(side=LEFT, padx=20, pady=20)
+        postProcessBackprojectionButton = Button(toolbarBottom, text="Post-Process Backprojection",
+                                                 command=self.postProcessBackprojection)
+        postProcessBackprojectionButton.pack(side=LEFT, padx=20, pady=20)
+
+        full_backprojection_Button = Button(toolbarBottom, text="All Backprojections", command=self.allBackprojections)
+        full_backprojection_Button.pack(side=LEFT, padx=20, pady=20)
 
         backprojectorSKIButton = Button(toolbarBottom, text="IRadon Scikit Full", command=self.getIRadonSciKit)
         backprojectorSKIButton.pack(side=RIGHT, padx=20, pady=20)
@@ -287,7 +300,40 @@ class RadonProject_UI:
 
         self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
 
-    # stepwise Radon
+    # full Radon 2D
+
+    def fullRadon(self):
+        """ Step Radon """
+        if self.inputImage is None:
+            self.setStatus("Please choose an input image.")
+            return
+
+        if self.radon_transform_complete:
+            self.setStatus("Radon Transform already complete.")
+            return
+
+        CTScanner = RadonTransform(self.inputImage, self.radon_angles_array, self.current_radon_transform)
+
+        CTScanner.get1DSinogram(len(self.radon_angles_array) - 1)
+        sinogram1DImage= cv2.imread("scanner_plot.png")
+        sinogram1DImage = cv2.cvtColor(sinogram1DImage, cv2.COLOR_RGB2GRAY)
+
+        self.current_radon_transform = CTScanner.full_Radon2D()
+        radon_transf_image = CTScanner.getRadonImage()
+
+        self.displayImageOnLabel(self.radon_1D_ImageLabel, sinogram1DImage, self.IMAGE_SIZE_SMALL)
+        self.displayImageOnLabel(self.radon_2D_ImageLabel, radon_transf_image, self.IMAGE_SIZE_LONG)
+
+        self.radon_transform_complete = True
+        self.reset_for_radon = True
+        self.current_angle_index = 0
+
+        statusString = "Ran Radon for all angles."
+        self.setStatus(statusString)
+
+        self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
+
+    # stepwise Backprojection
 
     def stepBackprojection(self):
         """ Step Backprojector """
@@ -306,8 +352,8 @@ class RadonProject_UI:
         Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
                                           self.current_radon_transform, self.backProjectionMatrix)
         self.backProjectionMatrix = Backprojector.stepwiseBackprojection(self.current_angle_index)
-        backprojection_image = Backprojector.getBackprojectionImage()
-        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, backprojection_image, self.IMAGE_SIZE)
+        self.backprojection_image = Backprojector.getBackprojectionImage()
+        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
 
         self.current_angle_index = (self.current_angle_index + 1) % len(self.radon_angles_array)
 
@@ -315,6 +361,48 @@ class RadonProject_UI:
         self.setStatus(statusString)
 
         self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
+
+    # all Backprojections
+
+    def allBackprojections(self):
+        """ Step Backprojector """
+        if self.inputImage is None:
+            self.setStatus("Please choose an input image.")
+            return
+
+        if not self.radon_transform_complete:
+            self.setStatus("Cannot backproject. Radon transform not complete.")
+            return
+
+        if self.current_angle_index == 0:
+            (N, M) = self.inputImage.shape
+            self.backProjectionMatrix = np.zeros((N * 2, M * 2), np.float32)
+
+        Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
+                                          self.current_radon_transform, self.backProjectionMatrix)
+        self.backProjectionMatrix = Backprojector.fullBackprojection()
+        self.backprojection_image = Backprojector.getBackprojectionImage()
+        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
+
+        self.current_angle_index = 0
+
+        statusString = "Ran backprojections for all angles."
+        self.setStatus(statusString)
+
+        self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
+
+
+    def postProcessBackprojection(self):
+        """ Step Backprojector """
+        if self.backprojection_image is None:
+            self.setStatus("Cannot post-process image. No backprojections are complete.")
+        Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
+                                          self.current_radon_transform, self.backProjectionMatrix)
+        postprocess_backprojection_image = Backprojector.getPostProcessedBackprojectionImage(self.backprojection_image)
+        self.displayImageOnLabel(self.backprojection_2D_ImageLabel, postprocess_backprojection_image, self.IMAGE_SIZE)
+
+        statusString = "Post-processed backprojection image."
+        self.setStatus(statusString)
 
 
     # Scikit Radon

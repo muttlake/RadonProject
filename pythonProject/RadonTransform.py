@@ -40,10 +40,28 @@ class RadonTransform:
         angle = self.radon_angles_array[angleIndex]
         values = CT.onePassRadon(angle)
         valueIndex = 0
+        valueCount = len(values)
         for value in values:
-            self.radonOutput[valueIndex][angleIndex] = values[valueIndex]
+            self.radonOutput[valueCount - valueIndex - 1][angleIndex] = values[valueIndex]
             valueIndex += 1
-        print("The size of the current 2D Radon Transform: ", self.radonOutput.shape)
+        #print("The size of the current 2D Radon Transform: ", self.radonOutput.shape)
+        return self.radonOutput
+
+    # full 2D Radon
+
+    def full_Radon2D(self):
+        """ Do one pass of radon , return list of 1D values """
+        angle_index = 0
+        CT = CTScan(self.inputImage)
+        for angle in self.radon_angles_array:
+            values = CT.onePassRadon(angle)
+            valueIndex = 0
+            valueCount = len(values)
+            for value in values:
+                self.radonOutput[valueCount - valueIndex - 1][angle_index] = values[valueIndex]
+                valueIndex += 1
+            angle_index += 1
+        #print("Ran full radon2D. The size of the current 2D Radon Transform: ", self.radonOutput.shape)
         return self.radonOutput
 
 
