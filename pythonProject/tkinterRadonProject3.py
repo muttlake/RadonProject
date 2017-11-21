@@ -203,7 +203,7 @@ class RadonProject_UI:
         self.backprojectionFilter = StringVar(toolbarBottom)
         self.backprojectionFilter.set("Filter for Backprojections");
 
-        backprojectionPullDown = OptionMenu(toolbarBottom, self.backprojectionFilter, "No Filter", "Ram-Lak", "Low-pass")
+        backprojectionPullDown = OptionMenu(toolbarBottom, self.backprojectionFilter, "No Filter", "Ram-Lak")
         backprojectionPullDown.pack(side=LEFT, padx=20, pady=20)
 
         backprojectorSKIButton = Button(toolbarBottom, text="IRadon Scikit Full", command=self.getIRadonSciKit)
@@ -357,15 +357,28 @@ class RadonProject_UI:
             (N, M) = self.inputImage.shape
             self.backProjectionMatrix = np.zeros((N * 2, M * 2), np.float32)
 
+        filterName = self.backprojectionFilter.get()
+        if filterName == "Filter for Backprojections":
+            filterName = "No Filter"
+
+
         Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
                                           self.current_radon_transform, self.backProjectionMatrix)
-        self.backProjectionMatrix = Backprojector.stepwiseBackprojection(self.current_angle_index)
+
+        backprojection1Dimage = Backprojector.get1DBackprojectionImage(self.current_angle_index, filterName)
+
+        #self.backProjectionMatrix = Backprojector.stepwiseBackprojection(self.current_angle_index)
+        self.backProjectionMatrix = Backprojector.stepwiseBackprojectionFiltered(self.current_angle_index,
+                                                                                 filterName)
         self.backprojection_image = Backprojector.getBackprojectionImage()
+
+        self.displayImageOnLabel(self.radon_1D_ImageLabel, backprojection1Dimage, self.IMAGE_SIZE_SMALL)
         self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
 
         self.current_angle_index = (self.current_angle_index + 1) % len(self.radon_angles_array)
 
-        statusString = "Ran backprojection for angle  " + str(self.radon_angles_array[self.current_angle_index - 1]) + "°"
+        statusString = "Ran backprojection for angle  " + str(self.radon_angles_array[self.current_angle_index - 1]) + \
+                       "° with filter: " + filterName
         self.setStatus(statusString)
 
         self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])

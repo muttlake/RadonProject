@@ -33,7 +33,7 @@ class Scanner2DSKI:
 
         angleIndex = 0
         for angle in self.anglesArray:
-            theta = np.linspace(angle, angle, 1, endpoint=False)
+            theta = np.linspace(angle, angle, 1, endpoint=True)
             sinogram = radon(self.inputImage, theta=theta, circle=True)
             for pixel in range(N):
                 self.radonOutput[pixel][angleIndex] = sinogram[pixel]
@@ -44,7 +44,7 @@ class Scanner2DSKI:
 
     def iRadon2D(self):
         """ Do one pass of radon , return list of 1D values """
-        theta = np.linspace(0, 180, len(self.anglesArray), endpoint=False)
+        theta = np.linspace(0, 180, len(self.anglesArray), endpoint=True)
         self.iRadonOutput = iradon(self.radonOutput, theta=theta, circle=True)
 
 
@@ -56,7 +56,7 @@ class Scanner2DSKI:
 
     def stepwiseRadon2D(self, angle):
         """ Do one pass of radon , return list of 1D values """
-        theta = np.linspace(angle, angle, 1, endpoint=False)
+        theta = np.linspace(angle, angle, 1, endpoint=True)
         sinogram = radon(self.inputImage, theta=theta, circle=True)
 
         for pixel in range(N):

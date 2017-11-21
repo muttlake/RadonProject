@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from Filter1D import Filter1D
 
 class BackprojectRadon:
 
@@ -11,6 +12,47 @@ class BackprojectRadon:
         (N, M) = self.inputImage.shape
         self.backProjectionMatrix = backProjM
         self.outputImage = np.zeros((N, M), np.uint8)
+
+    def stepwiseBackprojectionFiltered(self, angleIndex, filter_name):
+        """ Do one pass of radon , return list of 1D values """
+        angle = self.anglesArray[angleIndex]
+
+        (NR, AR) = self.radonMatrix.shape
+        radonLineValues = []
+        for ii in range(NR):
+            radonLineValues.append(self.radonMatrix[ii][angleIndex])
+        Filt1 = Filter1D(radonLineValues)
+        filtered_values = Filt1.filter(filter_name)
+
+        rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle*-1)
+        (N, M) = rotated_backProjection.shape
+        #print("rotated_backProjection.shape: ", rotated_backProjection.shape)
+        for row in range(N):
+            for col in range(NR):
+                colShift = round(M / 4)
+                currentValue = rotated_backProjection[row][col + colShift]
+                backprojectionValue = filtered_values[col]
+                rotated_backProjection[row][(col + colShift)] = currentValue + backprojectionValue
+
+        self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle)
+        return self.backProjectionMatrix
+
+    def get1DBackprojectionImage(self, angleIndex, filter_name):
+
+        angle = self.anglesArray[angleIndex]
+
+        (NR, AR) = self.radonMatrix.shape
+        radonLineValues = []
+        for ii in range(NR):
+            radonLineValues.append(self.radonMatrix[ii][angleIndex])
+        Filt1 = Filter1D(radonLineValues)
+
+        Filt1.get1DFilteredBackprojection(filter_name, angle)
+
+        backprojection1Dimage = cv2.imread("backprojection_1D_plot.png")
+        backprojection1Dimage = cv2.cvtColor(backprojection1Dimage, cv2.COLOR_RGB2GRAY)
+
+        return backprojection1Dimage
 
     def stepwiseBackprojection(self, angleIndex):
         """ Do one pass of radon , return list of 1D values """

@@ -4,4 +4,4 @@ values = [0, 0, 0, 0, 67, 518, 1028, 1538, 2048, 2558, 3068, 3578, 4088, 4598, 5
 
 filterObject = Filter1D(values)
 
-filterObject.low_pass_ramp()
+filterObject.filter("ram-lak")
