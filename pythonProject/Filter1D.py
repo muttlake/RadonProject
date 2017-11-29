@@ -11,6 +11,7 @@ class Filter1D:
 
     def filter(self, filter_name):
         """ Return low pass filter of values """
+
         if filter_name == "No Filter":
             return self.values_list
 
@@ -19,7 +20,15 @@ class Filter1D:
         fft_values = np.fft.fft(values_padded)
         fft_values_shift = np.fft.fftshift(fft_values)
 
-        filter1 = self.ramlak_Filter(len(fft_values_shift))
+
+        filter1 = np.ones(len(self.values_list))
+        if filter_name == "Gaussian" or filter_name == "Gaussian DC Bias":
+            std_dev = np.std(self.values_list)
+            filter1 = self.gaussian_Filter(len(self.values_list), std_dev)
+        else: # Default is RamLak
+            filter1 = self.ramlak_Filter(len(fft_values_shift))
+
+
         filter_fft_values = fft_values_shift * filter1  # filter here
 
         filter_fft_values_ifftshift = np.fft.ifftshift(filter_fft_values)
@@ -27,6 +36,9 @@ class Filter1D:
 
         magnitude_ifft = self.int_magnitude(ifft_filtered_values)
         magnitude_ifft_shorten = magnitude_ifft[0:len(self.values_list)]
+
+        if filter_name == "Ram-Lak DC Bias" or filter_name == "Gaussian DC Bias":
+            magnitude_ifft_shorten = self.bias_filtered_values(magnitude_ifft_shorten)
 
         return magnitude_ifft_shorten
 
@@ -67,6 +79,22 @@ class Filter1D:
         """ Return ramlak filter for numpoints """
         evenly_spaced_values = np.linspace(-1, 1, num_points)
         return abs(evenly_spaced_values)
+
+    def bias_filtered_values(self, filtered_values):
+        """ DC Bias Filtered Values """
+        maxValue = np.max(filtered_values)
+        for ii in range(len(filtered_values)):
+            filtered_values[ii] += maxValue/3
+        return filtered_values
+
+    def gaussian_Filter(self, num_points, stdev):
+        """ Return gaussian filter for numpoints """
+        gaussian_filter = np.ones(num_points)
+        # for x in range(num_points):
+        #
+
+        return gaussian_filter
+
 
     def filter_with_Printing(self, filter_name):
         """ Return low pass filter of values """

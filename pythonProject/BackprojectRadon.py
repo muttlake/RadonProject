@@ -61,6 +61,7 @@ class BackprojectRadon:
         (NR, AR) = self.radonMatrix.shape
         radonLineValues = [0] * NR
 
+
         rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle*-1)
         (N, M) = rotated_backProjection.shape
         #print("rotated_backProjection.shape: ", rotated_backProjection.shape)
@@ -72,6 +73,32 @@ class BackprojectRadon:
                 rotated_backProjection[row][(col + colShift)] = currentValue + backprojectionValue
 
         self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle)
+        return self.backProjectionMatrix
+
+    # full backprojection of radon Filtered
+    def fullBackprojectionFiltered(self, filter_name):
+        """ Do one pass of radon , return list of 1D values """
+        (NR, AR) = self.radonMatrix.shape
+        angle_index = 0
+        for angle in self.anglesArray:
+            angle = self.anglesArray[angle_index]
+            radonLineValues = []
+            for ii in range(NR):
+                radonLineValues.append(self.radonMatrix[ii][angle_index])
+            Filt1 = Filter1D(radonLineValues)
+            filtered_values = Filt1.filter(filter_name)
+
+            rotated_backProjection = self.rotateMatrix(self.backProjectionMatrix, angle*-1)
+            (N, M) = rotated_backProjection.shape
+            for row in range(N):
+                for col in range(len(filtered_values)):
+                    colShift = round(M / 4)
+                    currentValue = rotated_backProjection[row][col + colShift]
+                    backprojectionValue = filtered_values[col]
+                    rotated_backProjection[row][(col + colShift)] = currentValue + backprojectionValue
+            angle_index += 1
+            self.backProjectionMatrix = self.rotateMatrix(rotated_backProjection, angle)
+
         return self.backProjectionMatrix
 
     # full backprojection of radon

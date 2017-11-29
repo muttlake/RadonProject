@@ -211,7 +211,8 @@ class RadonProject_UI:
         self.backprojectionFilter = StringVar(toolbarBottom)
         self.backprojectionFilter.set("Filter for Backprojections");
 
-        backprojectionPullDown = OptionMenu(toolbarBottom, self.backprojectionFilter, "No Filter", "Ram-Lak")
+        backprojectionPullDown = OptionMenu(toolbarBottom, self.backprojectionFilter, "No Filter", "Ram-Lak",
+                                            "Ram-Lak DC Bias", "Gaussian", "Gaussian DC Bias")
         backprojectionPullDown.pack(side=LEFT, padx=20, pady=20)
 
         backprojectorSKIButton = Button(toolbarBottom, text="IRadon Scikit Full", command=self.getIRadonSciKit)
@@ -443,16 +444,20 @@ class RadonProject_UI:
             (N, M) = self.inputImage.shape
             self.backProjectionMatrix = np.zeros((N * 2, M * 2), np.float32)
 
+        filterName = self.backprojectionFilter.get()
+        if filterName == "Filter for Backprojections":
+            filterName = "No Filter"
+
         Backprojector = BackprojectRadon(self.inputImage, self.radon_angles_array,
                                           self.current_radon_transform, self.backProjectionMatrix)
-        self.backProjectionMatrix = Backprojector.fullBackprojection()
+        self.backProjectionMatrix = Backprojector.fullBackprojectionFiltered(filterName)
         self.backprojection_image = Backprojector.getBackprojectionImage()
         self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
         self.outputImage = self.backprojection_image
 
         self.current_angle_index = 0
 
-        statusString = "Ran backprojections for all angles."
+        statusString = "Ran backprojections for all angles with filter " + filterName + " ."
         self.setStatus(statusString)
 
         self.currentOutFileName = self.outFileInitialName + "_FullBackProjection_filterName_AngleCount_" \
