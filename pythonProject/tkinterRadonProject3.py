@@ -29,6 +29,11 @@ class RadonProject_UI:
 
     mainframe = None
 
+    # file names
+    outFileInitialName = ""
+    currentOutFileName = ""
+    outputImage = None
+
     # radon variables
     radon_angles_array = None
     current_angle_index = None
@@ -175,7 +180,6 @@ class RadonProject_UI:
         self.backprojection_Difference_ImageLabel.image = empty_image_display
 
 
-
         ### ****** Step IRadon Transform Button ******
         step_iradon_Button = Button(self.mainframe, text="Transform", bd=0, highlightthickness=0, relief='ridge',
                                    command=self.stepBackprojection)
@@ -193,7 +197,11 @@ class RadonProject_UI:
                                   command=self.input_and_backprojection_Image_Difference)
         differenceButton.pack(side=LEFT, padx=20, pady=20)
 
-        postProcessBackprojectionButton = Button(toolbarBottom, text="Post-Process Backprojection",
+        saveButton = Button(toolbarBottom, text="Save BP",
+                                                 command=self.file_save)
+        saveButton.pack(side=LEFT, padx=20, pady=20)
+
+        postProcessBackprojectionButton = Button(toolbarBottom, text="Post-Process BP",
                                                  command=self.postProcessBackprojection)
         postProcessBackprojectionButton.pack(side=LEFT, padx=20, pady=20)
 
@@ -221,6 +229,11 @@ class RadonProject_UI:
 
     def getInputImage(self):
         filename = filedialog.askopenfilename()
+        if filename is None:
+            self.setStatus("No input image chosen")
+            return
+
+        self.outFileInitialName = self.getInitialOutputFilename(filename)
 
         self.inputImage = cv2.imread(filename)
         self.inputImage = cv2.cvtColor(self.inputImage, cv2.COLOR_RGB2GRAY)
@@ -231,6 +244,30 @@ class RadonProject_UI:
         self.reset_for_radon = True
         self.setStatus("Loaded input image: " + filename)
 
+
+
+    def getInitialOutputFilename(self, filenameWithPath):
+        """ Return initial output file name """
+        splitString = filenameWithPath.split("/")
+        lastName = splitString[len(splitString) - 1]
+        fileSplitString = lastName.split(".")
+        fileString = fileSplitString[0]
+        if fileString == "":
+            fileString = "UnknownFile"
+        fileString = fileString.replace(" ", "_")
+        return fileString
+
+
+    def file_save(self):
+        self.currentOutFileName = self.currentOutFileName.replace(".", "p")
+        #print(self.currentOutFileName)
+        outFileName = filedialog.asksaveasfilename(title=("Save Output Image"), initialfile=self.currentOutFileName,
+                                                   defaultextension=".png")
+        if outFileName is None:
+            self.setStatus("No save file chosen.")
+            return
+
+        cv2.imwrite(outFileName, self.outputImage)
 
     def retrieveNumAngles(self):
         num_additional_angles_string = self.number_angles_Entry.get()
@@ -243,6 +280,7 @@ class RadonProject_UI:
         except ValueError:
             self.setStatus("Setting the default radon transform angle increment to " + str(angle_increment) + "°")
         return num_additional_angles
+
 
 
     def setStatus(self, statusString):
@@ -375,11 +413,17 @@ class RadonProject_UI:
         self.displayImageOnLabel(self.radon_1D_ImageLabel, backprojection1Dimage, self.IMAGE_SIZE_SMALL)
         self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
 
+        self.outputImage = self.backprojection_image
+        self.currentOutFileName = self.outFileInitialName + "_StepBackProjection_filterName_AngleCount_" \
+                                + str(len(self.radon_angles_array)) + " _ angleIndex_" + str(self.current_angle_index)
+
         self.current_angle_index = (self.current_angle_index + 1) % len(self.radon_angles_array)
 
         statusString = "Ran backprojection for angle  " + str(self.radon_angles_array[self.current_angle_index - 1]) + \
                        "° with filter: " + filterName
         self.setStatus(statusString)
+
+
 
         self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
 
@@ -404,11 +448,15 @@ class RadonProject_UI:
         self.backProjectionMatrix = Backprojector.fullBackprojection()
         self.backprojection_image = Backprojector.getBackprojectionImage()
         self.displayImageOnLabel(self.backprojection_2D_ImageLabel, self.backprojection_image, self.IMAGE_SIZE)
+        self.outputImage = self.backprojection_image
 
         self.current_angle_index = 0
 
         statusString = "Ran backprojections for all angles."
         self.setStatus(statusString)
+
+        self.currentOutFileName = self.outFileInitialName + "_FullBackProjection_filterName_AngleCount_" \
+                                  + str(len(self.radon_angles_array))
 
         self.makeRightSideArrows(self.radon_angles_array[self.current_angle_index - 1])
 
@@ -424,6 +472,8 @@ class RadonProject_UI:
 
         statusString = "Post-processed backprojection image."
         self.setStatus(statusString)
+
+        self.currentOutFileName = self.currentOutFileName + "_postProcessed"
 
     def input_and_backprojection_Image_Difference(self):
         """ Difference between input image and backprojection image """
