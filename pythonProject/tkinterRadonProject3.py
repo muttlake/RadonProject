@@ -28,6 +28,8 @@ class RadonProject_UI:
     number_angles_Entry = None
 
     mainframe = None
+    maincanvas = None
+    vsb = None
 
     # file names
     outFileInitialName = ""
@@ -96,7 +98,7 @@ class RadonProject_UI:
         self.number_angles_Entry.pack(side=RIGHT, padx=10, pady=20)
         self.number_angles_Entry.insert(0, '10')
 
-        num_Angles_Label = Label(toolbar, text="Enter number angles from 0° to 180°:", font=myStatusFont, bg="slate gray")
+        num_Angles_Label = Label(toolbar, text="Enter number angles from 0° to 180°:", font=mySmallFont, bg="slate gray")
         num_Angles_Label.pack(side=RIGHT, padx=0, pady=20)
 
         toolbar.pack(side=TOP, fill=X)
@@ -107,11 +109,25 @@ class RadonProject_UI:
         self.statusLabel = Label(root, text="Started Project GUI", bd=1, relief=SUNKEN, anchor=W, font=myStatusFont, fg="maroon")
         self.statusLabel.pack(side=BOTTOM, fill=X)
 
-        ## ****** Main Window Frame ******
-        self.mainframe = Frame(root, bg="gainsboro")  # frame is a blank widget
-        self.mainframe.pack()
 
-        self.mainframe.columnconfigure(1, weight=1)
+        ## ****** Main Canvas  ******
+        self.maincanvas = Canvas(root, borderwidth=0, background="gainsboro")
+        self.vsb = Scrollbar(root, orient="vertical", command=self.maincanvas.yview)
+        self.maincanvas.configure(yscrollcommand=self.vsb.set)
+
+        self.vsb.pack(side="right", fill="y")
+        self.maincanvas.pack(side="left", fill="both", expand=True)
+
+        ## ****** Main Window Frame ******
+        self.mainframe = Frame(self.maincanvas, bg="gainsboro")  # frame is a blank widget
+
+        self.maincanvas.create_window((0,0), window=self.mainframe ,anchor="nw",
+                                  tags="self.mainframe")
+        self.mainframe.bind("<Configure>", self.onFrameConfigure)
+
+        # self.mainframe.pack()
+        #
+        # self.mainframe.columnconfigure(1, weight=1)
 
         ## ****** Make Right Side Arrows ******
         self.makeRightSideArrows(90) # column 0, rows 0 through 3
@@ -191,7 +207,7 @@ class RadonProject_UI:
         step_iradon_Button.image = buttonImageDownDisplay
 
         ## ****** Bottom Toolbar ******
-        toolbarBottom = Frame(master, bg="slate gray")
+        toolbarBottom = Frame(self.maincanvas, bg="slate gray")
 
         differenceButton = Button(toolbarBottom, text="Difference: Input - Backprojection",
                                   command=self.input_and_backprojection_Image_Difference)
@@ -227,6 +243,10 @@ class RadonProject_UI:
         self.radon_angles_array = [0.0, 18.0, 36.0, 54.0, 72.0, 90.0, 108.0, 126.0, 144.0, 162.0, 180.0]
         self.current_angle_index = 0
 
+
+    def onFrameConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        self.maincanvas.configure(scrollregion=self.maincanvas.bbox("all"))
 
     def getInputImage(self):
         filename = filedialog.askopenfilename()
